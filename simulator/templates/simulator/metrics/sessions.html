@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Active Sessions - SynergyX{% endblock %}
+
+{% block content %}
+<div class="p-10 space-y-8 text-white">
+  <h1 class="text-4xl font-bold text-blue-400">🣍 Active Sessions</h1>
+  <p class="text-lg max-w-3xl">Monitor user activity in real-time. See how many sessions are active, what pages are being viewed, and where users spend time.</p>
+
+  <div class="bg-gray-900 p-6 rounded-2xl border-l-4 border-blue-400 shadow-lg hover:shadow-blue-300/20 transition-transform transform hover:scale-105">
+    <img src="{% static 'simulator/images/sessions_sample.png' %}" alt="Active Sessions Graph" class="rounded-xl shadow-md border border-blue-500/20">
+    <p class="mt-4 text-sm text-gray-300">Visualize session traffic, durations, and activity heatmaps. Analytics powered by Kibana and Elasticsearch log indexing.</p>
+    <a href="http://localhost:5601" target="_blank" class="inline-block mt-4 px-4 py-2 bg-blue-400 text-gray-900 font-semibold rounded-md shadow hover:bg-blue-300 transition">🔍 Explore Sessions in Kibana</a>
+  </div>
+</div>
+{% endblock %}

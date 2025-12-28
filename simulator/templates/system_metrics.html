@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}System Metrics - SynergyX{% endblock %}
+
+{% block content %}
+<div class="p-10 space-y-8 text-white">
+
+  <h1 class="text-4xl font-bold text-yellow-300">📊 System Metrics Dashboard</h1>
+  <p class="text-lg max-w-3xl">Live infrastructure and usage insights across your 5G mmWave platform.</p>
+
+  <!-- CPU & RAM -->
+  <a href="{% url 'cpu_metrics' %}" class="block transition-transform transform hover:scale-105">
+    <div class="bg-gray-900 p-6 rounded-2xl border-l-4 border-yellow-400 shadow-md hover:shadow-yellow-300/20">
+      <h2 class="text-2xl font-semibold text-yellow-300 mb-3">🧠 CPU & RAM Usage</h2>
+      <img src="{% static 'simulator/images/cpu_ram_sample.png' %}" class="rounded-lg shadow-md" alt="CPU RAM Graph">
+      <p class="text-sm mt-3 text-gray-300">Tracks system consumption and alerts you in real-time when thresholds are crossed.</p>
+    </div>
+  </a>
+
+  <!-- Active Sessions -->
+  <a href="{% url 'sessions_metrics' %}" class="block transition-transform transform hover:scale-105">
+    <div class="bg-gray-900 p-6 rounded-2xl border-l-4 border-blue-400 shadow-md hover:shadow-blue-300/20">
+      <h2 class="text-2xl font-semibold text-blue-300 mb-3">🧍 Active Sessions</h2>
+      <img src="{% static 'simulator/images/sessions_sample.png' %}" class="rounded-lg shadow-md" alt="Session Tracking">
+      <p class="text-sm mt-3 text-gray-300">Displays live user interactions and time spent on each page/module.</p>
+    </div>
+  </a>
+
+  <!-- Connected Users -->
+  <a href="{% url 'users_metrics' %}" class="block transition-transform transform hover:scale-105">
+    <div class="bg-gray-900 p-6 rounded-2xl border-l-4 border-purple-400 shadow-md hover:shadow-purple-300/20">
+      <h2 class="text-2xl font-semibold text-purple-300 mb-3">🌐 Connected Users</h2>
+      <img src="{% static 'simulator/images/users_connected.png' %}" class="rounded-lg shadow-md" alt="Users Online">
+      <p class="text-sm mt-3 text-gray-300">Insights into concurrent platform usage and device distribution.</p>
+    </div>
+  </a>
+
+
+</div>
+{% endblock %}

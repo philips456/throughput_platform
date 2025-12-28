@@ -1,0 +1,866 @@
+{% extends "base.html" %}
+
+{% block title %}Throughput Prediction Simulation 📡{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-bold mb-4">Simulate Throughput Prediction Between Two Antennas 📡</h2>
+
+<!-- User controls -->
+<div class="mb-4 flex items-center gap-4">
+  <label>Speed (m/s):</label>
+  <input type="number" id="speed" value="5.5" step="0.5" min="0" class="text-black p-1 rounded" />
+
+  <label>Direction (degrees):</label>
+  <input type="number" id="direction" value="45" step="1" min="0" max="360" class="text-black p-1 rounded" />
+
+  <label>Mobility Mode:</label>
+  <select id="mobility" class="text-black p-1 rounded">
+    <option value="Walking">Walking</option>
+    <option value="Driving">Driving</option>
+    <option value="Indoor">Indoor</option>
+  </select>
+
+  <button onclick="startSimulation()" class="bg-cyan-600 text-white px-4 py-1 rounded hover:bg-cyan-800">
+    ▶️ Start Simulation
+  </button>
+  
+  <button onclick="toggleDebug()" class="bg-gray-600 text-white px-2 py-1 rounded text-sm">
+    🐞 Debug
+  </button>
+  
+  <button onclick="toggleAIAssistant()" class="bg-purple-600 text-white px-2 py-1 rounded text-sm ml-auto">
+    🤖 AI Assistant
+  </button>
+</div>
+
+<!-- Status message -->
+
+<!-- Main content with map and AI assistant -->
+<div class="flex flex-row gap-4 relative">
+  <!-- Map container -->
+  <div class="flex-grow">
+    <div id="map" style="height: 500px;" class="rounded-lg shadow-md mb-4"></div>
+    <div class="flex justify-between items-center mb-4 bg-gray-800 p-3 rounded-lg">
+      <div class="flex items-center">
+        <span class="text-gray-300 mr-2">Current Position:</span>
+        <span id="current-coordinates" class="font-mono text-cyan-400">Lat: 44.9778, Lng: -93.2650</span>
+      </div>
+      <div class="flex items-center">
+        <span class="text-gray-300 mr-2">Distance Traveled:</span>
+        <span id="distance-traveled" class="font-mono text-cyan-400">0.00 km</span>
+      </div>
+    </div>
+    <p id="output" class="text-cyan-300 text-lg font-semibold"></p>
+  </div>
+  
+  <!-- AI Assistant Panel -->
+  <div id="ai-assistant-panel" class="hidden w-96 bg-gray-800 rounded-lg shadow-lg flex flex-col h-[600px] transition-all duration-300 ease-in-out">
+    <div class="bg-purple-800 p-3 rounded-t-lg flex justify-between items-center">
+      <h3 class="text-lg font-bold text-white">5G AI Assistant</h3>
+      <button onclick="toggleAIAssistant()" class="text-white hover:text-gray-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+    <div id="chat-messages" class="flex-grow overflow-y-auto p-4 space-y-4">
+      <!-- Messages will be added here -->
+      <div class="flex flex-col">
+        <div class="bg-purple-700 text-white p-3 rounded-lg rounded-tl-none max-w-[80%] self-start">
+          <p>👋 Hello! I'm your 5G Simulation Assistant. I can help explain the simulation, feature importance, and model impact. What would you like to know?</p>
+        </div>
+      </div>
+      <div class="flex flex-col">
+        <div class="bg-purple-700 text-white p-3 rounded-lg rounded-tl-none max-w-[80%] self-start">
+          <p>Try asking me:</p>
+          <ul class="list-disc pl-5 mt-1 space-y-1">
+            <li>What is this simulation showing?</li>
+            <li>Explain the importance of RSRP</li>
+            <li>How does speed affect throughput?</li>
+            <li>What features impact the model most?</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="p-3 border-t border-gray-700">
+      <div class="flex items-center">
+        <input type="text" id="chat-input" placeholder="Ask me about the simulation..." 
+               class="flex-grow p-2 rounded-l-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+               onkeydown="if(event.key === 'Enter') sendMessage()">
+        <button onclick="sendMessage()" class="bg-purple-600 text-white p-2 rounded-r-lg hover:bg-purple-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Debug info -->
+<div id="debug-info" class="mt-4 p-2 bg-gray-800 rounded-lg hidden">
+  <h3 class="text-lg font-bold mb-2">Debug Information</h3>
+  <pre id="debug-content" class="text-xs overflow-auto max-h-40"></pre>
+  <button onclick="toggleDebug()" class="mt-2 bg-gray-600 text-white px-2 py-1 rounded text-sm">Hide Debug Info</button>
+</div>
+
+<!-- Mapbox CSS & JS -->
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoibHVjbmdvYSIsImEiOiJjbWE0ZThhN2IwN3V5Mm5zOGFtemhiaGJvIn0.Zfi7bimqMLDCiC2-5NEW7w';
+  let map;
+  let marker;
+  let currentStep = 0;
+  let simulationInterval;
+  let antenna1 = { lat: 44.9778, lng: -93.2650 };  // First antenna location (Minneapolis)
+  let antenna2 = { lat: 44.9878, lng: -93.2750 };  // Second antenna location (Minneapolis)
+  let sessionId = 'session_' + Date.now();  // Create unique session ID for sequence tracking
+  let debugMode = false;
+  let fallbackMode = false;
+  let results = []; // Store simulation results
+  let totalThroughput = 0; // Accumulate throughput values
+  let simulationResults = [];
+  let currentSimulationData = {}; // Store current simulation data for AI assistant
+
+  // Initialize the map
+  function initializeMap() {
+    map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [(antenna1.lng + antenna2.lng) / 2, (antenna1.lat + antenna2.lat) / 2], // Center the map between antennas
+      zoom: 13
+    });
+
+    // Add antennas to the map
+    new mapboxgl.Marker({ color: '#FF0000' })
+      .setLngLat([antenna1.lng, antenna1.lat])
+      .setPopup(new mapboxgl.Popup().setHTML("<strong>Antenna 1</strong><br>📡 5G Tower"))
+      .addTo(map);
+      
+    new mapboxgl.Marker({ color: '#FF0000' })
+      .setLngLat([antenna2.lng, antenna2.lat])
+      .setPopup(new mapboxgl.Popup().setHTML("<strong>Antenna 2</strong><br>📡 5G Tower"))
+      .addTo(map);
+
+    // Add user emoji marker
+    const userEl = document.createElement("div");
+    userEl.innerHTML = "🧍‍♂️";  // User emoji
+    userEl.style.fontSize = "24px";
+    marker = new mapboxgl.Marker(userEl).setLngLat([antenna1.lng, antenna1.lat]).addTo(map);
+    
+    // Add line between antennas
+    map.on('load', function() {
+      map.addSource('route', {
+        'type': 'geojson',
+        'data': {
+          'type': 'Feature',
+          'properties': {},
+          'geometry': {
+            'type': 'LineString',
+            'coordinates': [
+              [antenna1.lng, antenna1.lat],
+              [antenna2.lng, antenna2.lat]
+            ]
+          }
+        }
+      });
+      
+      map.addLayer({
+        'id': 'route',
+        'type': 'line',
+        'source': 'route',
+        'layout': {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        'paint': {
+          'line-color': '#888',
+          'line-width': 2,
+          'line-dasharray': [2, 1]
+        }
+      });
+    });
+  }
+
+  // Interpolate position between two points
+  function interpolate(p1, p2, step, total) {
+    return [
+      p1[0] + (p2[0] - p1[0]) * step / total,
+      p1[1] + (p2[1] - p1[1]) * step / total
+    ];
+  }
+
+  // Toggle debug information
+  function toggleDebug() {
+    debugMode = !debugMode;
+    document.getElementById('debug-info').classList.toggle('hidden');
+    if (!debugMode) {
+      document.getElementById('debug-content').textContent = '';
+    }
+  }
+  
+  // Toggle AI Assistant panel
+  function toggleAIAssistant() {
+    const panel = document.getElementById('ai-assistant-panel');
+    panel.classList.toggle('hidden');
+    
+    // If opening the panel, focus on the input
+    if (!panel.classList.contains('hidden')) {
+      document.getElementById('chat-input').focus();
+    }
+  }
+
+  // Log debug information
+  function logDebug(message, data) {
+    if (debugMode) {
+      const debugContent = document.getElementById('debug-content');
+      const timestamp = new Date().toISOString().substr(11, 8);
+      let logMessage = `[${timestamp}] ${message}\n`;
+      
+      if (data) {
+        logMessage += JSON.stringify(data, null, 2) + '\n\n';
+      }
+      
+      debugContent.textContent = logMessage + debugContent.textContent;
+    }
+  }
+
+  // Calculate signal strength based on distance from antennas
+  function calculateSignalStrength(pos) {
+    // Simple distance-based calculation
+    const dist1 = Math.sqrt(
+      Math.pow(pos[0] - antenna1.lng, 2) + 
+      Math.pow(pos[1] - antenna1.lat, 2)
+    ) * 111000; // Convert to meters (rough approximation)
+    
+    const dist2 = Math.sqrt(
+      Math.pow(pos[0] - antenna2.lng, 2) + 
+      Math.pow(pos[1] - antenna2.lat, 2)
+    ) * 111000;
+    
+    // Closer antenna provides stronger signal
+    const closerDist = Math.min(dist1, dist2);
+    
+    // RSRP ranges from -50 (very close) to -120 (very far)
+    const rsrp = Math.max(-120, Math.min(-50, -70 - closerDist / 100));
+    
+    // SINR ranges from 30 (very close) to 0 (far)
+    const sinr = Math.max(0, Math.min(30, 25 - closerDist / 200));
+    
+    // RSRQ ranges from -10 (very close) to -20 (far)
+    const rsrq = Math.max(-20, Math.min(-10, -12 - closerDist / 500));
+    
+    return {
+      nr_ssRsrp: rsrp,
+      nr_ssSinr: sinr,
+      nr_ssRsrq: rsrq
+    };
+  }
+
+  // Simulate step and predict throughput
+  function simulateStep() {
+    if (currentStep > 20) {  // Stop after 20 steps
+      clearInterval(simulationInterval);
+      document.getElementById("output").innerHTML = "✅ Simulation complete!";
+      
+      // Calculate and display average throughput
+      const avgThroughput = totalThroughput / results.length;
+      document.getElementById("avg-throughput").textContent = avgThroughput.toFixed(2) + " Mbps";
+      
+      // Show the results table
+      document.getElementById("results-table").classList.remove("hidden");
+      return;
+    }
+
+    const start = [antenna1.lng, antenna1.lat];
+    const end = [antenna2.lng, antenna2.lat];
+    const pos = interpolate(start, end, currentStep, 20);
+    marker.setLngLat(pos);
+
+    // Update the displayed coordinates
+    document.getElementById("current-coordinates").textContent = `Lat: ${pos[1].toFixed(6)}, Lng: ${pos[0].toFixed(6)}`;
+    
+    // Calculate and update distance traveled
+    const totalDistance = calculateDistance(antenna1.lat, antenna1.lng, antenna2.lat, antenna2.lng);
+    const distanceTraveled = totalDistance * (currentStep / 20);
+    document.getElementById("distance-traveled").textContent = `${distanceTraveled.toFixed(2)} km`;
+
+    // Calculate signal strength based on position
+    const signalStrength = calculateSignalStrength(pos);
+    
+    // Get user inputs
+    const speed = parseFloat(document.getElementById("speed").value) || 3.5;
+    const direction = parseFloat(document.getElementById("direction").value) || 45;
+    const mobilityMode = document.getElementById("mobility").value || "Walking";
+
+    const params = new URLSearchParams({
+      lon: pos[0],
+      lat: pos[1],
+      speed: speed,
+      direction: direction,
+      mobility_mode: mobilityMode,
+      session_id: sessionId,
+      nr_ssRsrp: signalStrength.nr_ssRsrp,
+      nr_ssSinr: signalStrength.nr_ssSinr,
+      nr_ssRsrq: signalStrength.nr_ssRsrq,
+      signal_strength: signalStrength.nr_ssRsrp > -85 ? "Good" : 
+                       signalStrength.nr_ssRsrp > -100 ? "Medium" : "Poor"
+    });
+
+    logDebug("Request parameters:", Object.fromEntries(params.entries()));
+
+    // Predict throughput by calling the backend API
+    fetch('/api/map_prediction/?' + params)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        logDebug("API response:", data);
+        
+        // Store current simulation data for AI assistant
+        currentSimulationData = {
+          step: currentStep + 1,
+          position: { lat: pos[1], lng: pos[0] },
+          signalStrength: signalStrength,
+          speed: speed,
+          direction: direction,
+          mobilityMode: mobilityMode,
+          throughput: data.throughput
+        };
+        
+        // Check if we're in fallback mode
+        if (data.note && data.note.includes("fallback")) {
+          if (!fallbackMode) {
+            fallbackMode = true;
+            document.getElementById('status-message').classList.remove('hidden');
+            document.getElementById('status-text').textContent = 
+              "Using fallback prediction mode. ML models not found or could not be loaded.";
+          }
+        }
+        
+        const output = document.getElementById("output");
+        if (data.error) {
+          output.innerHTML = `<span class="text-red-400">❌ Prediction Error: ${data.error}</span>`;
+        } else {
+          // Add emoji based on throughput
+          let emoji = "🚀"; // High throughput
+          if (data.throughput < 50) emoji = "⚡"; // Medium throughput
+          if (data.throughput < 20) emoji = "🐢"; // Low throughput
+          
+          output.innerHTML = `${emoji} Step ${currentStep + 1}/20 → Throughput: <strong>${data.throughput} Mbps</strong> (${signalStrength.nr_ssRsrp.toFixed(1)} dBm)`;
+          
+          // Add a small marker for this prediction point
+          new mapboxgl.Marker({ color: getThroughputColor(data.throughput), scale: 0.5 })
+            .setLngLat(pos)
+            .setPopup(new mapboxgl.Popup().setHTML(`<strong>Throughput:</strong> ${data.throughput} Mbps<br><strong>RSRP:</strong> ${signalStrength.nr_ssRsrp.toFixed(1)} dBm`))
+            .addTo(map);
+            
+          // Update results table
+          updateResultsTable(currentStep, pos, signalStrength, data.throughput);
+
+          // Store the results
+          const result = {
+            step: currentStep + 1,
+            location: `${pos[1].toFixed(6)}, ${pos[0].toFixed(6)}`,
+            rsrp: signalStrength.nr_ssRsrp.toFixed(1),
+            sinr: signalStrength.nr_ssSinr.toFixed(1),
+            throughput: data.throughput.toFixed(2),
+            signalQuality: signalStrength.nr_ssRsrp > -85 ? "Good" : 
+                           signalStrength.nr_ssRsrp > -100 ? "Medium" : "Poor"
+          };
+          results.push(result);
+          totalThroughput += parseFloat(data.throughput);
+          
+          // Update the results table
+          updateResultsTable(currentStep + 1, pos, signalStrength, data.throughput.toFixed(2));
+        }
+        currentStep++;
+      })
+      .catch(err => {
+        logDebug("API error:", { message: err.message });
+        document.getElementById("output").innerHTML = `<span class="text-red-400">❌ API Error: ${err.message}</span>`;
+        
+        // Try alternative endpoint if main one fails
+        tryAlternativeEndpoint(pos, speed, direction, mobilityMode, signalStrength);
+      });
+  }
+
+  // Add a function to calculate distance between two points
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    const distance = R * c; // Distance in km
+    return distance;
+  }
+
+  function deg2rad(deg) {
+    return deg * (Math.PI/180);
+  }
+
+  // Update the startSimulation function to reset the coordinates display
+  function startSimulation() {
+    // Reset simulation
+    currentStep = 0;
+    sessionId = 'session_' + Date.now();  // Create new session ID
+    
+    // Reset coordinate display
+    document.getElementById("current-coordinates").textContent = `Lat: ${antenna1.lat.toFixed(6)}, Lng: ${antenna1.lng.toFixed(6)}`;
+    document.getElementById("distance-traveled").textContent = "0.00 km";
+    
+    // Clear previous results
+    simulationResults = [];
+    document.getElementById("results-body").innerHTML = "";
+    document.getElementById("avg-throughput").textContent = "--";
+    document.getElementById("results-table").classList.add("hidden");
+    results = []; // Clear previous results
+    totalThroughput = 0; // Reset total throughput
+    
+    // Clear previous markers except antennas
+    map.markers?.forEach(m => {
+      if (m !== marker) {
+        m.remove();
+      }
+    });
+    
+    document.getElementById("output").innerHTML = "🔄 Starting simulation...";
+    document.getElementById("results-table").classList.add("hidden"); // Hide table
+    document.getElementById("results-body").innerHTML = ""; // Clear table body
+    simulationResults = [];
+
+    // Start simulation
+    simulationInterval = setInterval(simulateStep, 1000);  // Move every second
+    
+    // Add a message from the AI assistant about the simulation starting
+    addAIMessage("I notice you've started a new simulation! I'll analyze the data as it comes in. Feel free to ask me about any aspect of the simulation.");
+  }
+  
+  // Try alternative endpoint if main one fails
+  function tryAlternativeEndpoint(pos, speed, direction, mobilityMode, signalStrength) {
+    const params = new URLSearchParams({
+      lon: pos[0],
+      lat: pos[1],
+      speed: speed,
+      direction: direction,
+      nr_ssRsrp: signalStrength.nr_ssRsrp,
+      nr_ssSinr: signalStrength.nr_ssSinr,
+      nr_ssRsrq: signalStrength.nr_ssRsrq
+    });
+
+    logDebug("Trying alternative endpoint with parameters:", Object.fromEntries(params.entries()));
+
+    fetch('/api/map_prediction_api/?' + params)
+      .then(res => res.json())
+      .then(data => {
+        logDebug("Alternative API response:", data);
+        
+        // Check if we're in fallback mode
+        if (data.note && data.note.includes("fallback")) {
+          if (!fallbackMode) {
+            fallbackMode = true;
+            document.getElementById('status-message').classList.remove('hidden');
+            document.getElementById('status-text').textContent = 
+              "Using fallback prediction mode. ML models not found or could not be loaded.";
+          }
+        }
+        
+        if (data.error) {
+          document.getElementById("output").innerHTML += `<br><span class="text-yellow-400">⚠️ Alternative API also failed: ${data.error}</span>`;
+        } else {
+          document.getElementById("output").innerHTML = `⚠️ Using fallback API → Throughput: <strong>${data.throughput} Mbps</strong>`;
+          
+          // Add a small marker for this prediction point
+          new mapboxgl.Marker({ color: getThroughputColor(data.throughput), scale: 0.5 })
+            .setLngLat(pos)
+            .setPopup(new mapboxgl.Popup().setHTML(`<strong>Throughput:</strong> ${data.throughput} Mbps<br><strong>RSRP:</strong> ${signalStrength.nr_ssRsrp.toFixed(1)} dBm`))
+            .addTo(map);
+            
+          currentStep++;
+        }
+      })
+      .catch(err => {
+        logDebug("Alternative API error:", { message: err.message });
+        document.getElementById("output").innerHTML += `<br><span class="text-red-400">❌ All APIs failed. Check server logs.</span>`;
+      });
+  }
+
+  // Get color based on throughput value
+  function getThroughputColor(throughput) {
+    if (throughput >= 100) return '#00FF00'; // Green for high throughput
+    if (throughput >= 50) return '#FFFF00';  // Yellow for medium throughput
+    if (throughput >= 20) return '#FFA500';  // Orange for low throughput
+    return '#FF0000';                        // Red for very low throughput
+  }
+
+  // Add this function to your script section
+  function downloadCSV() {
+    // Create CSV content
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Step,Latitude,Longitude,RSRP (dBm),SINR (dB),RSRQ (dB),Throughput (Mbps),Signal Quality\n";
+    
+    simulationResults.forEach(result => {
+      csvContent += `${result.step},${result.lat},${result.lng},${result.rsrp},${result.sinr},${result.rsrq},${result.throughput},${result.quality}\n`;
+    });
+    
+    // Create download link
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `throughput_simulation_${sessionId}.csv`);
+    document.body.appendChild(link);
+    
+    // Trigger download
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Add this function to update the results table
+  function updateResultsTable(step, pos, signalStrength, throughput) {
+    const tbody = document.getElementById("results-body");
+    const resultsTable = document.getElementById("results-table");
+    
+    // Show the table if it's hidden
+    resultsTable.classList.remove("hidden");
+    
+    // Calculate signal quality
+    let quality = "Poor";
+    if (signalStrength.nr_ssRsrp > -85) quality = "Good";
+    else if (signalStrength.nr_ssRsrp > -100) quality = "Medium";
+    
+    // Store the result
+    simulationResults.push({
+      step: step,
+      lat: pos[1],
+      lng: pos[0],
+      rsrp: signalStrength.nr_ssRsrp.toFixed(1),
+      sinr: signalStrength.nr_ssSinr.toFixed(1),
+      rsrq: signalStrength.nr_ssRsrq.toFixed(1),
+      throughput: throughput,
+      quality: quality
+    });
+    
+    // Create table row
+    const row = document.createElement("tr");
+    row.className = step % 2 === 0 ? "bg-gray-900" : "bg-gray-800";
+    
+    // Get color based on throughput
+    const throughputColor = getThroughputColor(throughput);
+    
+    row.innerHTML = `
+      <td class="px-4 py-2 whitespace-nowrap">${step}</td>
+      <td class="px-4 py-2 whitespace-nowrap">${pos[1].toFixed(6)}, ${pos[0].toFixed(6)}</td>
+      <td class="px-4 py-2 whitespace-nowrap">${signalStrength.nr_ssRsrp.toFixed(1)}</td>
+      <td class="px-4 py-2 whitespace-nowrap">${signalStrength.nr_ssSinr.toFixed(1)}</td>
+      <td class="px-4 py-2 whitespace-nowrap">
+        <span class="px-2 py-1 rounded" style="background-color: ${throughputColor}; color: #000;">
+          ${throughput}
+        </span>
+      </td>
+      <td class="px-4 py-2 whitespace-nowrap">
+        <span class="px-2 py-1 rounded ${quality === 'Good' ? 'bg-green-700' : quality === 'Medium' ? 'bg-yellow-700' : 'bg-red-700'}">
+          ${quality}
+        </span>
+      </td>
+    `;
+    
+    tbody.appendChild(row);
+    
+    // Update average throughput
+    updateAverageThroughput();
+  }
+
+  // Add this function to calculate and display average throughput
+  function updateAverageThroughput() {
+    if (simulationResults.length === 0) return;
+    
+    const sum = simulationResults.reduce((total, result) => total + parseFloat(result.throughput), 0);
+    const avg = sum / simulationResults.length;
+    
+    document.getElementById("avg-throughput").textContent = `${avg.toFixed(2)} Mbps`;
+  }
+  
+  // AI Assistant Functions
+  function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    
+    if (message === '') return;
+    
+    // Add user message to chat
+    addUserMessage(message);
+    
+    // Clear input
+    input.value = '';
+    
+    // Get AI response
+    getAIResponse(message);
+  }
+  
+  function addUserMessage(message) {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageElement = document.createElement('div');
+    messageElement.className = 'flex flex-col';
+    messageElement.innerHTML = `
+      <div class="bg-cyan-600 text-white p-3 rounded-lg rounded-tr-none max-w-[80%] self-end">
+        <p>${escapeHtml(message)}</p>
+      </div>
+    `;
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  
+  function addAIMessage(message) {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageElement = document.createElement('div');
+    messageElement.className = 'flex flex-col';
+    
+    // Convert markdown-like syntax to HTML
+    message = formatMessage(message);
+    
+    messageElement.innerHTML = `
+      <div class="bg-purple-700 text-white p-3 rounded-lg rounded-tl-none max-w-[80%] self-start">
+        <p>${message}</p>
+      </div>
+    `;
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  
+  function addAIThinkingMessage() {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageElement = document.createElement('div');
+    messageElement.className = 'flex flex-col ai-thinking';
+    messageElement.innerHTML = `
+      <div class="bg-purple-700 text-white p-3 rounded-lg rounded-tl-none max-w-[80%] self-start flex items-center">
+        <div class="typing-indicator">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    `;
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return messageElement;
+  }
+  
+  function removeThinkingMessage() {
+    const thinkingMessage = document.querySelector('.ai-thinking');
+    if (thinkingMessage) {
+      thinkingMessage.remove();
+    }
+  }
+  
+  function getAIResponse(message) {
+    // Add thinking indicator
+    const thinkingMessage = addAIThinkingMessage();
+    
+    // Prepare data for the AI request
+    const requestData = {
+      message: message,
+      simulation_data: currentSimulationData,
+      simulation_results: simulationResults
+    };
+    
+    // Make API request to the backend
+    fetch('/api/ai_assistant/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Remove thinking indicator
+      removeThinkingMessage();
+      
+      // Add AI response
+      addAIMessage(data.response);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      removeThinkingMessage();
+      
+      // Fallback responses if the API fails
+      const fallbackResponses = getFallbackResponse(message);
+      addAIMessage(fallbackResponses);
+    });
+  }
+  
+  // Get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  
+  // Escape HTML to prevent XSS
+  function escapeHtml(unsafe) {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+  
+  // Format message with markdown-like syntax
+  function formatMessage(message) {
+    // Bold text
+    message = message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Italic text
+    message = message.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // Code
+    message = message.replace(/`(.*?)`/g, '<code class="bg-purple-800 px-1 rounded">$1</code>');
+    
+    // Lists
+    message = message.replace(/^\- (.*?)$/gm, '<li>$1</li>');
+    message = message.replace(/<li>(.*?)<\/li>/g, '<ul class="list-disc pl-5 my-2">$&</ul>');
+    
+    // Line breaks
+    message = message.replace(/\n/g, '<br>');
+    
+    return message;
+  }
+  
+  // Fallback responses if the API fails
+  function getFallbackResponse(message) {
+    message = message.toLowerCase();
+    
+    if (message.includes('what') && message.includes('simulation')) {
+      return "This simulation shows how 5G throughput (data speed) changes as a user moves between two cell towers. It considers factors like signal strength (RSRP), signal quality (SINR), user speed, and mobility mode to predict the throughput at each point along the path.";
+    }
+    
+    if (message.includes('rsrp') || message.includes('reference signal')) {
+      return "**RSRP (Reference Signal Received Power)** is a key 5G signal strength measurement. It typically ranges from -50 dBm (very strong) to -140 dBm (very weak). In our model, RSRP has a significant impact on throughput prediction - stronger signals (higher RSRP values) generally lead to higher throughput. When RSRP drops below -100 dBm, throughput typically decreases rapidly.";
+    }
+    
+    if (message.includes('sinr') || message.includes('signal to interference')) {
+      return "**SINR (Signal to Interference plus Noise Ratio)** measures the quality of the signal compared to background noise and interference. It typically ranges from -5 dB (poor) to 30 dB (excellent). SINR is often more important than raw signal strength for throughput prediction, as it indicates how cleanly the signal can be decoded. Higher SINR values allow for higher-order modulation schemes, directly increasing throughput.";
+    }
+    
+    if (message.includes('speed') || message.includes('mobility')) {
+      return "**Speed** affects throughput in several ways:\n\n1. **Doppler Effect**: Higher speeds cause frequency shifts that can degrade signal quality\n2. **Handover Frequency**: Faster movement means more frequent handovers between cells\n3. **Channel Estimation**: Rapid changes make it harder for the network to optimize transmission\n\nIn our model, speeds above 20 m/s (72 km/h) typically reduce throughput by 10-20% compared to stationary users with the same signal conditions.";
+    }
+    
+    if (message.includes('feature') && (message.includes('important') || message.includes('impact'))) {
+      return "In our 5G throughput prediction model, the features ranked by importance are:\n\n1. **SINR (Signal to Interference plus Noise Ratio)**: ~40% impact - Directly affects modulation scheme\n2. **RSRP (Reference Signal Received Power)**: ~30% impact - Determines basic connectivity\n3. **Speed**: ~15% impact - Affects Doppler shift and handover frequency\n4. **RSRQ (Reference Signal Received Quality)**: ~10% impact - Indicates interference levels\n5. **Direction/Location**: ~5% impact - Affects antenna pattern and multipath\n\nThese weights shift based on conditions - for example, in weak signal areas, RSRP becomes more important.";
+    }
+    
+    // Default response
+    return "I'm your 5G simulation assistant. I can explain concepts like RSRP (signal strength), SINR (signal quality), how speed affects throughput, and which features are most important in the model. What would you like to know about?";
+  }
+
+  // Initialize the map when the page loads
+  document.addEventListener('DOMContentLoaded', initializeMap);
+  
+  // Add event listener for Enter key in chat input
+  document.getElementById('chat-input').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      sendMessage();
+    }
+  });
+  
+  // Add some CSS for the typing indicator
+  const style = document.createElement('style');
+  style.textContent = `
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+    }
+    
+    .typing-indicator span {
+      height: 8px;
+      width: 8px;
+      margin: 0 2px;
+      background-color: #fff;
+      border-radius: 50%;
+      display: inline-block;
+      opacity: 0.4;
+    }
+    
+    .typing-indicator span:nth-child(1) {
+      animation: pulse 1s infinite;
+    }
+    
+    .typing-indicator span:nth-child(2) {
+      animation: pulse 1s infinite 0.2s;
+    }
+    
+    .typing-indicator span:nth-child(3) {
+      animation: pulse 1s infinite 0.4s;
+    }
+    
+    @keyframes pulse {
+      0% {
+        opacity: 0.4;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.2);
+      }
+      100% {
+        opacity: 0.4;
+        transform: scale(1);
+      }
+    }
+  `;
+  document.head.appendChild(style);
+</script>
+
+<!-- Prediction Results Table -->
+<div id="results-table" class="mt-8 bg-gray-800 rounded-lg shadow-md p-4 hidden">
+  <h3 class="text-xl font-bold mb-4">Simulation Results</h3>
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-gray-900 rounded-lg overflow-hidden">
+      <thead class="bg-gray-700">
+        <tr>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Step</th>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Location</th>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">RSRP (dBm)</th>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">SINR (dB)</th>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Throughput (Mbps)</th>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Signal Quality</th>
+        </tr>
+      </thead>
+      <tbody id="results-body" class="divide-y divide-gray-800">
+        <!-- Results will be populated here -->
+      </tbody>
+    </table>
+  </div>
+  <div class="mt-4 flex justify-between">
+    <button onclick="downloadCSV()" class="bg-cyan-600 text-white px-4 py-1 rounded hover:bg-cyan-800">
+      📥 Download CSV
+    </button>
+    <div>
+      <span class="text-gray-300 mr-2">Average Throughput:</span>
+      <span id="avg-throughput" class="font-bold text-cyan-400">--</span>
+    </div>
+  </div>
+</div>
+{% endblock %}

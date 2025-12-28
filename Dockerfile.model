@@ -1,0 +1,25 @@
+# Use a Python base image
+FROM python:3.9-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Install necessary dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    unzip \
+    libglib2.0-0 libsm6 libxext6 libxrender-dev
+
+# Install Python dependencies
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application
+COPY . /app
+
+# Expose the port for MLflow server (default port 5000)
+EXPOSE 5000
+
+# Set the entry point to run MLflow
+CMD ["mlflow", "server", "--host", "0.0.0.0", "--port", "5000"]

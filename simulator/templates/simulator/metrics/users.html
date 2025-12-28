@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Connected Users - SynergyX{% endblock %}
+
+{% block content %}
+<div class="p-10 space-y-8 text-white">
+  <h1 class="text-4xl font-bold text-purple-300">🌐 Connected Users</h1>
+  <p class="text-lg max-w-3xl">Visualize all active users currently connected to SynergyX. This dashboard provides a real-time view of concurrent sessions and device types.</p>
+
+  <div class="bg-gray-900 p-6 rounded-2xl border-l-4 border-purple-400 shadow-lg hover:shadow-purple-300 transition-transform transform hover:scale-105">
+    <img src="{% static 'simulator/images/users_connected.png' %}" alt="Connected Users Graph" class="rounded-xl shadow-md border border-purple-500/20">
+    <p class="mt-4 text-sm text-gray-300">Connected users are monitored through backend session logs and aggregated via Elasticsearch queries.</p>
+    <a href="http://localhost:5601" target="_blank" class="inline-block mt-4 px-4 py-2 bg-purple-400 text-gray-900 font-semibold rounded-md shadow hover:bg-purple-300 transition">📈 View in Kibana</a>
+  </div>
+</div>
+{% endblock %}

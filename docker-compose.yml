@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # MLflow Service for Model Pipeline
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.model
+    container_name: mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlflow/mlruns  # Persist MLflow runs
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+  # Backend Service (Django API)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend  # Backend Dockerfile
+    container_name: django_backend
+    ports:
+      - "8000:8000"  # Expose backend on port 8000
+    volumes:
+      - .:/app  # Mount the current directory for code hot-reloading during dev
+    environment:
+      - DJANGO_SETTINGS_MODULE=throughput_platform.settings  # Update with your project name
+    networks:
+      - backend
+
+  # Frontend Service (Django dashboard)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend  # Frontend Dockerfile
+    container_name: django_frontend
+    ports:
+      - "80:80"  # Expose frontend on port 80
+    depends_on:
+      - backend  # Ensure backend is available before starting frontend
+    networks:
+      - backend
+
+  # MLflow Service for Model Pipeline
+
+  
+
+  # Elasticsearch Service (Upgraded version)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.0  # Upgraded version
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - backend
+
+  # Kibana Service (Upgraded version)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.16.0  # Upgraded version
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - backend
+
+# Volumes for Elasticsearch
+volumes:
+  elasticsearch-data:
+    driver: local
+
+# Networks configuration
+networks:
+  backend:
+    driver: bridge

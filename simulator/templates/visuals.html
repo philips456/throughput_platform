@@ -1,0 +1,1006 @@
+{% extends "base.html" %}
+{% block title %}Model Visualization & Comparison - SynergyX{% endblock %}
+
+{% block content %}
+
+<!-- Loading Spinner -->
+<div id="loading" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="flex items-center">
+      <svg class="animate-spin h-10 w-10 text-cyan-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l5-5-5-5v4a12 12 0 00-12 12h4l5-5-5-5v4z"></path>
+      </svg>
+    </div>
+  </div>
+  
+  <script>
+    // JavaScript to hide loading spinner after 1 second
+    setTimeout(function() {
+      document.getElementById("loading").style.display = "none";
+    }, 500);  // 500 milliseconds = 1 second
+  </script>
+<div class="p-8 space-y-8">
+  <h1 class="text-3xl font-bold text-cyan-400 mb-2">5G Throughput Model Visualization 📊</h1>
+  <p class="text-lg text-gray-300 mb-8">Compare model performance, analyze throughput curves, and get personalized recommendations.</p>
+  
+  <!-- Main content grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Sidebar - Controls Panel -->
+    <div class="lg:col-span-3 space-y-6">
+      <!-- Scenario Selection -->
+      <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
+        <h2 class="text-xl font-semibold text-cyan-300 mb-4">Scenario Selection</h2>
+        <div class="space-y-3">
+          <button type="button" onclick="loadScenario('urban')" 
+                  class="w-full bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-600 flex items-center">
+            <span class="mr-2">🏙️</span> Urban Center
+          </button>
+          <button type="button" onclick="loadScenario('suburban')" 
+                  class="w-full bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-600 flex items-center">
+            <span class="mr-2">🏘️</span> Suburban Area
+          </button>
+          <button type="button" onclick="loadScenario('highway')" 
+                  class="w-full bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-600 flex items-center">
+            <span class="mr-2">🛣️</span> Highway
+          </button>
+          <button type="button" onclick="loadScenario('indoor')" 
+                  class="w-full bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-600 flex items-center">
+            <span class="mr-2">🏬</span> Indoor Mall
+          </button>
+          <button type="button" onclick="loadScenario('custom')" 
+                  class="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white py-2 px-4 rounded-md hover:from-purple-600 hover:to-indigo-700 flex items-center">
+            <span class="mr-2">⚙️</span> Custom Parameters
+          </button>
+        </div>
+      </div>
+      
+      <!-- Model Selection -->
+      <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
+        <h2 class="text-xl font-semibold text-cyan-300 mb-4">Model Selection</h2>
+        <div class="space-y-2">
+          <label class="inline-flex items-center">
+            <input type="checkbox" id="rawModel" checked class="form-checkbox h-5 w-5 text-blue-500">
+            <span class="ml-2 text-white">Raw Throughput Model</span>
+          </label>
+          <label class="inline-flex items-center">
+            <input type="checkbox" id="smoothedModel" checked class="form-checkbox h-5 w-5 text-green-500">
+            <span class="ml-2 text-white">Smoothed Throughput Model</span>
+          </label>
+          <label class="inline-flex items-center">
+            <input type="checkbox" id="hybridModel" checked class="form-checkbox h-5 w-5 text-purple-500">
+            <span class="ml-2 text-white">Hybrid Throughput Model</span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Custom Parameters (initially hidden) -->
+      <div id="customParamsPanel" class="bg-gray-800 p-6 rounded-2xl shadow-xl hidden">
+        <h2 class="text-xl font-semibold text-cyan-300 mb-4">Custom Parameters</h2>
+        <form id="customParamsForm" class="space-y-4">
+          <!-- Signal Parameters -->
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1">RSRP (dBm)</label>
+            <input type="range" min="-120" max="-70" step="1" value="-90" id="rsrpSlider" 
+                   class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            <div class="flex justify-between text-xs text-gray-400 mt-1">
+              <span>-120</span>
+              <span id="rsrpValue">-90</span>
+              <span>-70</span>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1">SINR (dB)</label>
+            <input type="range" min="-5" max="30" step="1" value="15" id="sinrSlider" 
+                   class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            <div class="flex justify-between text-xs text-gray-400 mt-1">
+              <span>-5</span>
+              <span id="sinrValue">15</span>
+              <span>30</span>
+            </div>
+          </div>
+          
+          <!-- Movement Parameters -->
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1">Speed (m/s)</label>
+            <input type="range" min="0" max="30" step="0.5" value="5" id="speedSlider" 
+                   class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            <div class="flex justify-between text-xs text-gray-400 mt-1">
+              <span>0</span>
+              <span id="speedValue">5</span>
+              <span>30</span>
+            </div>
+          </div>
+          
+          <!-- Mobility Mode -->
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1">Mobility Mode</label>
+            <select id="mobilityMode" 
+                   class="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500">
+              <option value="Walking">Walking</option>
+              <option value="Driving">Driving</option>
+              <option value="Indoor">Indoor</option>
+            </select>
+          </div>
+          
+          <button type="button" onclick="updateCustomScenario()" 
+                  class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-2 px-4 rounded-md hover:from-cyan-600 hover:to-blue-700">
+            Update Visualization
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="lg:col-span-9 space-y-6">
+      <!-- Throughput Curve Chart -->
+      <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
+        <h2 class="text-xl font-semibold text-cyan-300 mb-4">Throughput Curve Comparison</h2>
+        <div class="h-80">
+          <canvas id="throughputChart"></canvas>
+        </div>
+        <div class="mt-4 text-sm text-gray-400">
+          <p id="chartDescription">This chart shows the predicted throughput over time for different models in the selected scenario.</p>
+        </div>
+      </div>
+      
+      <!-- Model Performance Metrics -->
+      <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
+        <h2 class="text-xl font-semibold text-cyan-300 mb-4">Model Performance Metrics</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Raw Model -->
+          <div class="bg-gray-900 p-4 rounded-xl border-l-4 border-blue-500">
+            <h3 class="text-lg font-medium text-blue-300 mb-2">Raw Model</h3>
+            <div class="space-y-2">
+              <div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-400">Accuracy</span>
+                  <span id="rawAccuracy" class="text-white">89%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                  <div id="rawAccuracyBar" class="bg-blue-500 h-1.5 rounded-full" style="width: 89%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-400">Latency</span>
+                  <span id="rawLatency" class="text-white">15ms</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                  <div id="rawLatencyBar" class="bg-blue-500 h-1.5 rounded-full" style="width: 75%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-400">Stability</span>
+                  <span id="rawStability" class="text-white">Low</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                  <div id="rawStabilityBar" class="bg-blue-500 h-1.5 rounded-full" style="width: 40%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Smoothed Model -->
+          <div class="bg-gray-900 p-4 rounded-xl border-l-4 border-green-500">
+            <h3 class="text-lg font-medium text-green-300 mb-2">Smoothed Model</h3>
+            <div class="space-y-2">
+              <div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-400">Accuracy</span>
+                  <span id="smoothedAccuracy" class="text-white">84%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                  <div id="smoothedAccuracyBar" class="bg-green-500 h-1.5 rounded-full" style="width: 84%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-400">Latency</span>
+                  <span id="smoothedLatency" class="text-white">18ms</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                  <div id="smoothedLatencyBar" class="bg-green-500 h-1.5 rounded-full" style="width: 65%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-400">Stability</span>
+                  <span id="smoothedStability" class="text-white">High</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                  <div id="smoothedStabilityBar" class="bg-green-500 h-1.5 rounded-full" style="width: 85%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Hybrid Model -->
+          <div class="bg-gray-900 p-4 rounded-xl border-l-4 border-purple-500">
+            <h3 class="text-lg font-medium text-purple-300 mb-2">Hybrid Model</h3>
+            <div class="space-y-2">
+              <div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-400">Accuracy</span>
+                  <span id="hybridAccuracy" class="text-white">92%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                  <div id="hybridAccuracyBar" class="bg-purple-500 h-1.5 rounded-full" style="width: 92%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-400">Latency</span>
+                  <span id="hybridLatency" class="text-white">22ms</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                  <div id="hybridLatencyBar" class="bg-purple-500 h-1.5 rounded-full" style="width: 55%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-400">Stability</span>
+                  <span id="hybridStability" class="text-white">Medium</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                  <div id="hybridStabilityBar" class="bg-purple-500 h-1.5 rounded-full" style="width: 65%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Scenario Analysis -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Signal Quality Impact -->
+        <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
+          <h2 class="text-xl font-semibold text-cyan-300 mb-4">Signal Quality Impact</h2>
+          <div class="h-64">
+            <canvas id="signalImpactChart"></canvas>
+          </div>
+        </div>
+        
+        <!-- Mobility Impact -->
+        <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
+          <h2 class="text-xl font-semibold text-cyan-300 mb-4">Mobility Impact</h2>
+          <div class="h-64">
+            <canvas id="mobilityImpactChart"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recommendations Panel -->
+      <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
+        <h2 class="text-xl font-semibold text-cyan-300 mb-4">Recommendations</h2>
+        <div id="recommendationsContainer" class="space-y-4">
+          <!-- Recommendations will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  // Global variables
+  let throughputChart = null;
+  let signalImpactChart = null;
+  let mobilityImpactChart = null;
+  let currentScenario = 'urban';
+  
+  // Initialize the page
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts
+    initializeCharts();
+    
+    // Load default scenario (urban)
+    loadScenario('urban');
+    
+    // Set up event listeners for sliders
+    document.getElementById('rsrpSlider').addEventListener('input', function() {
+      document.getElementById('rsrpValue').textContent = this.value;
+    });
+    
+    document.getElementById('sinrSlider').addEventListener('input', function() {
+      document.getElementById('sinrValue').textContent = this.value;
+    });
+    
+    document.getElementById('speedSlider').addEventListener('input', function() {
+      document.getElementById('speedValue').textContent = this.value;
+    });
+    
+    // Set up event listeners for model checkboxes
+    document.getElementById('rawModel').addEventListener('change', updateChartVisibility);
+    document.getElementById('smoothedModel').addEventListener('change', updateChartVisibility);
+    document.getElementById('hybridModel').addEventListener('change', updateChartVisibility);
+  });
+  
+  // Initialize charts
+  function initializeCharts() {
+    // Throughput Chart
+    const throughputCtx = document.getElementById('throughputChart').getContext('2d');
+    throughputChart = new Chart(throughputCtx, {
+      type: 'line',
+      data: {
+        labels: Array.from({length: 20}, (_, i) => i + 1), // 1 to 20
+        datasets: [
+          {
+            label: 'Raw Model',
+            data: [],
+            borderColor: 'rgba(59, 130, 246, 1)', // Blue
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'Smoothed Model',
+            data: [],
+            borderColor: 'rgba(16, 185, 129, 1)', // Green
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'Hybrid Model',
+            data: [],
+            borderColor: 'rgba(139, 92, 246, 1)', // Purple
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Throughput (Mbps)',
+              color: 'rgba(255, 255, 255, 0.7)'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Time Point',
+              color: 'rgba(255, 255, 255, 0.7)'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false
+          }
+        }
+      }
+    });
+    
+    // Signal Impact Chart
+    const signalImpactCtx = document.getElementById('signalImpactChart').getContext('2d');
+    signalImpactChart = new Chart(signalImpactCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Excellent', 'Good', 'Moderate', 'Poor', 'Very Poor'],
+        datasets: [
+          {
+            label: 'Average Throughput (Mbps)',
+            data: [],
+            backgroundColor: [
+              'rgba(16, 185, 129, 0.7)', // Green
+              'rgba(59, 130, 246, 0.7)', // Blue
+              'rgba(245, 158, 11, 0.7)', // Amber
+              'rgba(249, 115, 22, 0.7)', // Orange
+              'rgba(239, 68, 68, 0.7)'   // Red
+            ],
+            borderColor: [
+              'rgba(16, 185, 129, 1)',
+              'rgba(59, 130, 246, 1)',
+              'rgba(245, 158, 11, 1)',
+              'rgba(249, 115, 22, 1)',
+              'rgba(239, 68, 68, 1)'
+            ],
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Throughput (Mbps)',
+              color: 'rgba(255, 255, 255, 0.7)'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Signal Quality',
+              color: 'rgba(255, 255, 255, 0.7)'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    });
+    
+    // Mobility Impact Chart
+    const mobilityImpactCtx = document.getElementById('mobilityImpactChart').getContext('2d');
+    mobilityImpactChart = new Chart(mobilityImpactCtx, {
+      type: 'radar',
+      data: {
+        labels: ['Stationary', 'Walking', 'Cycling', 'Driving', 'High-Speed'],
+        datasets: [
+          {
+            label: 'Raw Model',
+            data: [],
+            borderColor: 'rgba(59, 130, 246, 1)',
+            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
+          },
+          {
+            label: 'Smoothed Model',
+            data: [],
+            borderColor: 'rgba(16, 185, 129, 1)',
+            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+            pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(16, 185, 129, 1)'
+          },
+          {
+            label: 'Hybrid Model',
+            data: [],
+            borderColor: 'rgba(139, 92, 246, 1)',
+            backgroundColor: 'rgba(139, 92, 246, 0.2)',
+            pointBackgroundColor: 'rgba(139, 92, 246, 1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(139, 92, 246, 1)'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            angleLines: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            pointLabels: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            },
+            ticks: {
+              backdropColor: 'transparent',
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  // Load scenario data
+  function loadScenario(scenario) {
+    currentScenario = scenario;
+    
+    // Show/hide custom parameters panel
+    if (scenario === 'custom') {
+      document.getElementById('customParamsPanel').classList.remove('hidden');
+    } else {
+      document.getElementById('customParamsPanel').classList.add('hidden');
+      
+      // Fetch scenario data from the server
+      fetch(`/api/scenario_data/?scenario=${scenario}`)
+        .then(response => response.json())
+        .then(data => {
+          updateCharts(data);
+          updateMetrics(data);
+          updateRecommendations(data);
+        })
+        .catch(error => {
+          console.error('Error fetching scenario data:', error);
+          // Use fallback data if API fails
+          const fallbackData = generateFallbackData(scenario);
+          updateCharts(fallbackData);
+          updateMetrics(fallbackData);
+          updateRecommendations(fallbackData);
+        });
+    }
+  }
+  
+  // Update custom scenario
+  function updateCustomScenario() {
+    // Get custom parameters
+    const rsrp = parseInt(document.getElementById('rsrpSlider').value);
+    const sinr = parseInt(document.getElementById('sinrSlider').value);
+    const speed = parseFloat(document.getElementById('speedSlider').value);
+    const mobilityMode = document.getElementById('mobilityMode').value;
+    
+    // Fetch custom scenario data from the server
+    fetch(`/api/custom_scenario_data/?rsrp=${rsrp}&sinr=${sinr}&speed=${speed}&mobility_mode=${mobilityMode}`)
+      .then(response => response.json())
+      .then(data => {
+        updateCharts(data);
+        updateMetrics(data);
+        updateRecommendations(data);
+      })
+      .catch(error => {
+        console.error('Error fetching custom scenario data:', error);
+        // Use fallback data if API fails
+        const fallbackData = generateCustomFallbackData(rsrp, sinr, speed, mobilityMode);
+        updateCharts(fallbackData);
+        updateMetrics(fallbackData);
+        updateRecommendations(fallbackData);
+      });
+  }
+  
+  // Update chart visibility based on model checkboxes
+  function updateChartVisibility() {
+    const rawChecked = document.getElementById('rawModel').checked;
+    const smoothedChecked = document.getElementById('smoothedModel').checked;
+    const hybridChecked = document.getElementById('hybridModel').checked;
+    
+    throughputChart.data.datasets[0].hidden = !rawChecked;
+    throughputChart.data.datasets[1].hidden = !smoothedChecked;
+    throughputChart.data.datasets[2].hidden = !hybridChecked;
+    throughputChart.update();
+    
+    mobilityImpactChart.data.datasets[0].hidden = !rawChecked;
+    mobilityImpactChart.data.datasets[1].hidden = !smoothedChecked;
+    mobilityImpactChart.data.datasets[2].hidden = !hybridChecked;
+    mobilityImpactChart.update();
+  }
+  
+  // Update charts with scenario data
+  function updateCharts(data) {
+    // Update throughput chart
+    throughputChart.data.datasets[0].data = data.throughput_curves.raw;
+    throughputChart.data.datasets[1].data = data.throughput_curves.smoothed;
+    throughputChart.data.datasets[2].data = data.throughput_curves.hybrid;
+    throughputChart.update();
+    
+    // Update signal impact chart
+    signalImpactChart.data.datasets[0].data = data.signal_impact;
+    signalImpactChart.update();
+    
+    // Update mobility impact chart
+    mobilityImpactChart.data.datasets[0].data = data.mobility_impact.raw;
+    mobilityImpactChart.data.datasets[1].data = data.mobility_impact.smoothed;
+    mobilityImpactChart.data.datasets[2].data = data.mobility_impact.hybrid;
+    mobilityImpactChart.update();
+    
+    // Update chart description
+    document.getElementById('chartDescription').textContent = data.description;
+  }
+  
+  // Update metrics with scenario data
+  function updateMetrics(data) {
+    // Raw model metrics
+    document.getElementById('rawAccuracy').textContent = data.metrics.raw.accuracy;
+    document.getElementById('rawAccuracyBar').style.width = data.metrics.raw.accuracy;
+    document.getElementById('rawLatency').textContent = data.metrics.raw.latency;
+    document.getElementById('rawLatencyBar').style.width = data.metrics.raw.latency_percentage;
+    document.getElementById('rawStability').textContent = data.metrics.raw.stability;
+    document.getElementById('rawStabilityBar').style.width = data.metrics.raw.stability_percentage;
+    
+    // Smoothed model metrics
+    document.getElementById('smoothedAccuracy').textContent = data.metrics.smoothed.accuracy;
+    document.getElementById('smoothedAccuracyBar').style.width = data.metrics.smoothed.accuracy;
+    document.getElementById('smoothedLatency').textContent = data.metrics.smoothed.latency;
+    document.getElementById('smoothedLatencyBar').style.width = data.metrics.smoothed.latency_percentage;
+    document.getElementById('smoothedStability').textContent = data.metrics.smoothed.stability;
+    document.getElementById('smoothedStabilityBar').style.width = data.metrics.smoothed.stability_percentage;
+    
+    // Hybrid model metrics
+    document.getElementById('hybridAccuracy').textContent = data.metrics.hybrid.accuracy;
+    document.getElementById('hybridAccuracyBar').style.width = data.metrics.hybrid.accuracy;
+    document.getElementById('hybridLatency').textContent = data.metrics.hybrid.latency;
+    document.getElementById('hybridLatencyBar').style.width = data.metrics.hybrid.latency_percentage;
+    document.getElementById('hybridStability').textContent = data.metrics.hybrid.stability;
+    document.getElementById('hybridStabilityBar').style.width = data.metrics.hybrid.stability_percentage;
+  }
+  
+  // Update recommendations with scenario data
+  function updateRecommendations(data) {
+    const container = document.getElementById('recommendationsContainer');
+    container.innerHTML = ''; // Clear existing recommendations
+    
+    // Add each recommendation
+    data.recommendations.forEach(rec => {
+      const item = document.createElement('div');
+      item.className = 'bg-gray-900 p-4 rounded-xl';
+      item.innerHTML = `
+        <div class="flex items-start">
+          <div class="text-2xl mr-3">${rec.icon}</div>
+          <div>
+            <h3 class="font-medium text-${rec.color}-400">${rec.title}</h3>
+            <p class="text-sm text-gray-400 mt-1">${rec.description}</p>
+          </div>
+        </div>
+      `;
+      container.appendChild(item);
+    });
+  }
+  
+  // Generate fallback data for scenarios when API fails
+  function generateFallbackData(scenario) {
+    // Base data structure
+    const data = {
+      throughput_curves: {
+        raw: [],
+        smoothed: [],
+        hybrid: []
+      },
+      signal_impact: [120, 90, 60, 30, 15],
+      mobility_impact: {
+        raw: [90, 85, 75, 60, 40],
+        smoothed: [85, 80, 75, 70, 65],
+        hybrid: [95, 90, 85, 75, 60]
+      },
+      metrics: {
+        raw: {
+          accuracy: "89%",
+          latency: "15ms",
+          stability: "Low",
+          latency_percentage: "75%",
+          stability_percentage: "40%"
+        },
+        smoothed: {
+          accuracy: "84%",
+          latency: "18ms",
+          stability: "High",
+          latency_percentage: "65%",
+          stability_percentage: "85%"
+        },
+        hybrid: {
+          accuracy: "92%",
+          latency: "22ms",
+          stability: "Medium",
+          latency_percentage: "55%",
+          stability_percentage: "65%"
+        }
+      },
+      recommendations: [],
+      description: ""
+    };
+    
+    // Generate throughput curves based on scenario
+    switch(scenario) {
+      case 'urban':
+        // Urban scenario - moderate fluctuations
+        for (let i = 0; i < 20; i++) {
+          const base = 80 + Math.sin(i * 0.5) * 20;
+          data.throughput_curves.raw.push(base + Math.random() * 30 - 15);
+          data.throughput_curves.smoothed.push(base + Math.sin(i * 0.3) * 10);
+          data.throughput_curves.hybrid.push(base + Math.sin(i * 0.4) * 15);
+        }
+        data.description = "Urban environment with moderate signal fluctuations due to buildings and obstacles.";
+        data.recommendations = [
+          {
+            title: "Optimal Model: Hybrid",
+            description: "For urban environments, the hybrid model provides the best balance of accuracy and stability.",
+            icon: "🏙️",
+            color: "purple"
+          },
+          {
+            title: "Signal Strength Considerations",
+            description: "In urban areas, signal strength can vary significantly. Consider using the smoothed model if stability is more important than peak performance.",
+            icon: "📶",
+            color: "blue"
+          },
+          {
+            title: "Mobility Optimization",
+            description: "For walking speeds in urban areas, all models perform well. For faster movement, the hybrid model adapts better to changing conditions.",
+            icon: "🚶",
+            color: "green"
+          }
+        ];
+        break;
+        
+      case 'suburban':
+        // Suburban scenario - mild fluctuations
+        for (let i = 0; i < 20; i++) {
+          const base = 60 + Math.sin(i * 0.3) * 15;
+          data.throughput_curves.raw.push(base + Math.random() * 20 - 10);
+          data.throughput_curves.smoothed.push(base + Math.sin(i * 0.2) * 8);
+          data.throughput_curves.hybrid.push(base + Math.sin(i * 0.25) * 12);
+        }
+        data.description = "Suburban environment with mild signal fluctuations and fewer obstacles.";
+        data.recommendations = [
+          {
+            title: "Optimal Model: Smoothed",
+            description: "For suburban environments, the smoothed model provides consistent performance with good accuracy.",
+            icon: "🏘️",
+            color: "green"
+          },
+          {
+            title: "Distance from Towers",
+            description: "In suburban areas, distance from towers is a key factor. The raw model may provide better peak performance when close to towers.",
+            icon: "📡",
+            color: "blue"
+          },
+          {
+            title: "Weather Impact",
+            description: "Suburban areas are more affected by weather conditions. During rain or fog, the smoothed model provides more reliable predictions.",
+            icon: "🌧️",
+            color: "yellow"
+          }
+        ];
+        break;
+        
+      case 'highway':
+        // Highway scenario - high speed, moderate fluctuations
+        for (let i = 0; i < 20; i++) {
+          const base = 70 + Math.sin(i * 0.8) * 25;
+          data.throughput_curves.raw.push(base + Math.random() * 40 - 20);
+          data.throughput_curves.smoothed.push(base + Math.sin(i * 0.4) * 15);
+          data.throughput_curves.hybrid.push(base + Math.sin(i * 0.6) * 20);
+        }
+        data.description = "Highway environment with high mobility and frequent handovers between towers.";
+        data.recommendations = [
+          {
+            title: "Optimal Model: Hybrid",
+            description: "For highway environments with high speeds, the hybrid model handles handovers between towers most effectively.",
+            icon: "🛣️",
+            color: "purple"
+          },
+          {
+            title: "Speed Considerations",
+            description: "At speeds above 80 km/h, the raw model shows increased fluctuations. The hybrid model provides better stability without sacrificing responsiveness.",
+            icon: "🚗",
+            color: "red"
+          },
+          {
+            title: "Handover Optimization",
+            description: "For applications requiring consistent connectivity during tower handovers, the smoothed model provides the most stable experience.",
+            icon: "🔄",
+            color: "blue"
+          }
+        ];
+        break;
+        
+      case 'indoor':
+        // Indoor scenario - low signal, high fluctuations
+        for (let i = 0; i < 20; i++) {
+          const base = 40 + Math.sin(i * 0.6) * 15;
+          data.throughput_curves.raw.push(base + Math.random() * 25 - 12.5);
+          data.throughput_curves.smoothed.push(base + Math.sin(i * 0.3) * 8);
+          data.throughput_curves.hybrid.push(base + Math.sin(i * 0.45) * 12);
+        }
+        data.description = "Indoor environment with signal attenuation due to walls and obstacles.";
+        data.recommendations = [
+          {
+            title: "Optimal Model: Smoothed",
+            description: "For indoor environments with significant signal attenuation, the smoothed model provides the most consistent experience.",
+            icon: "🏬",
+            color: "green"
+          },
+          {
+            title: "Building Material Impact",
+            description: "Different building materials affect signal penetration. In concrete structures, all models show reduced accuracy.",
+            icon: "🧱",
+            color: "yellow"
+          },
+          {
+            title: "Position Optimization",
+            description: "For indoor use, position near windows or exterior walls can significantly improve throughput regardless of model choice.",
+            icon: "🪟",
+            color: "blue"
+          },
+          {
+            title: "Consider Wi-Fi Offloading",
+            description: "In deep indoor locations, consider Wi-Fi offloading as mmWave 5G performance may be limited.",
+            icon: "📶",
+            color: "red"
+          }
+        ];
+        break;
+    }
+    
+    return data;
+  }
+  
+  // Generate fallback data for custom scenario when API fails
+  function generateCustomFallbackData(rsrp, sinr, speed, mobilityMode) {
+    // Base data structure
+    const data = {
+      throughput_curves: {
+        raw: [],
+        smoothed: [],
+        hybrid: []
+      },
+      signal_impact: [120, 90, 60, 30, 15],
+      mobility_impact: {
+        raw: [90, 85, 75, 60, 40],
+        smoothed: [85, 80, 75, 70, 65],
+        hybrid: [95, 90, 85, 75, 60]
+      },
+      metrics: {
+        raw: {
+          accuracy: "89%",
+          latency: "15ms",
+          stability: "Low",
+          latency_percentage: "75%",
+          stability_percentage: "40%"
+        },
+        smoothed: {
+          accuracy: "84%",
+          latency: "18ms",
+          stability: "High",
+          latency_percentage: "65%",
+          stability_percentage: "85%"
+        },
+        hybrid: {
+          accuracy: "92%",
+          latency: "22ms",
+          stability: "Medium",
+          latency_percentage: "55%",
+          stability_percentage: "65%"
+        }
+      },
+      recommendations: [],
+      description: `Custom scenario with RSRP: ${rsrp} dBm, SINR: ${sinr} dB, Speed: ${speed} m/s, Mode: ${mobilityMode}`
+    };
+    
+    // Adjust throughput based on signal parameters
+    const rsrpFactor = Math.min(1, Math.max(0, (rsrp + 140) / 70)); // Normalize -140 to -70 dBm
+    const sinrFactor = Math.min(1, Math.max(0, (sinr + 5) / 35));   // Normalize -5 to 30 dB
+    const signalFactor = rsrpFactor * 0.4 + sinrFactor * 0.6;       // Combined signal factor
+    
+    // Adjust for speed
+    const speedFactor = Math.max(0.5, 1 - speed / 60); // Higher speeds reduce stability
+    
+    // Adjust for mobility mode
+    let mobilityFactor = 1.0;
+    if (mobilityMode === 'Indoor') {
+      mobilityFactor = 0.7;
+    } else if (mobilityMode === 'Driving') {
+      mobilityFactor = 0.85;
+    }
+    
+    // Generate throughput curves
+    const baseThroughput = 150 * signalFactor * mobilityFactor;
+    const fluctuationFactor = (1 - signalFactor) * 2 + (1 - speedFactor);
+    
+    for (let i = 0; i < 20; i++) {
+      const base = baseThroughput + Math.sin(i * 0.5) * (baseThroughput * 0.2);
+      data.throughput_curves.raw.push(base + Math.random() * (baseThroughput * fluctuationFactor * 0.5) - (baseThroughput * fluctuationFactor * 0.25));
+      data.throughput_curves.smoothed.push(base + Math.sin(i * 0.3) * (baseThroughput * 0.1));
+      data.throughput_curves.hybrid.push(base + Math.sin(i * 0.4) * (baseThroughput * 0.15));
+    }
+    
+    // Generate recommendations based on parameters
+    const recommendations = [];
+    
+    // Signal-based recommendations
+    if (rsrp < -100) {
+      recommendations.push({
+        title: "Weak Signal Detected",
+        description: "The RSRP value indicates a weak signal. Consider moving closer to a window or outdoor area for better performance.",
+        icon: "📶",
+        color: "red"
+      });
+    }
+    
+    if (sinr < 10) {
+      recommendations.push({
+        title: "High Interference",
+        description: "The SINR value indicates high interference. Try changing your location or reducing electronic devices nearby.",
+        icon: "📡",
+        color: "yellow"
+      });
+    }
+    
+    // Speed-based recommendations
+    if (speed > 15) {
+      recommendations.push({
+        title: "High Mobility Detected",
+        description: "At your current speed, the hybrid model provides the best balance of accuracy and stability during handovers.",
+        icon: "🚗",
+        color: "purple"
+      });
+    } else if (speed < 2) {
+      recommendations.push({
+        title: "Stationary Usage",
+        description: "For stationary usage, the raw model provides the highest peak throughput when signal conditions are good.",
+        icon: "🧍",
+        color: "blue"
+      });
+    }
+    
+    // Mode-based recommendations
+    if (mobilityMode === 'Indoor') {
+      recommendations.push({
+        title: "Indoor Optimization",
+        description: "For indoor usage, the smoothed model provides the most consistent experience. Position near windows for better signal.",
+        icon: "🏠",
+        color: "green"
+      });
+    } else if (mobilityMode === 'Driving') {
+      recommendations.push({
+        title: "Driving Mode Optimization",
+        description: "While driving, expect frequent handovers between towers. The hybrid model handles these transitions most effectively.",
+        icon: "🚗",
+        color: "purple"
+      });
+    }
+    
+    // Add general recommendation if none specific
+    if (recommendations.length === 0) {
+      recommendations.push({
+        title: "Balanced Conditions",
+        description: "Your current parameters indicate balanced conditions. All models should perform well, with the hybrid model offering the best overall experience.",
+        icon: "✅",
+        color: "green"
+      });
+    }
+    
+    data.recommendations = recommendations;
+    
+    return data;
+  }
+</script>
+{% endblock %}

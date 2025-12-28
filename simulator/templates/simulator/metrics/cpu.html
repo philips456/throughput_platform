@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}CPU & RAM Usage - SynergyX{% endblock %}
+
+{% block content %}
+<div class="p-10 space-y-8 text-white">
+  <h1 class="text-4xl font-bold text-yellow-300">🧠 CPU & RAM Usage</h1>
+  <p class="text-lg max-w-3xl">Track your platform's live CPU and memory consumption using Kibana. Detect spikes, optimize workloads, and maintain availability.</p>
+
+  <div class="bg-gray-900 p-6 rounded-2xl border-l-4 border-yellow-400 shadow-lg hover:shadow-yellow-200 transition-transform transform hover:scale-105">
+    <img src="{% static 'simulator/images/cpu_ram_sample.png' %}" alt="CPU and RAM Monitoring Graph" class="rounded-xl shadow-md border border-yellow-500/20">
+    <p class="mt-4 text-sm text-gray-300">CPU and RAM metrics monitored continuously. Alerts configured via Kibana Watcher rules.</p>
+    <a href="http://localhost:5601" target="_blank" class="inline-block mt-4 px-4 py-2 bg-yellow-400 text-gray-900 font-semibold rounded-md shadow hover:bg-yellow-300 transition">📊 View in Kibana</a>
+  </div>
+</div>
+{% endblock %}

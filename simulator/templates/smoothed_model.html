@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Smoothed Throughput Model - SynergyX{% endblock %}
+
+{% block content %}
+<div class="p-8 space-y-8">
+  <h1 class="text-3xl font-bold text-purple-400 mb-2">Smoothed Throughput Model</h1>
+  <p class="text-lg text-gray-300 mb-8">The smoothed throughput model applies temporal filtering to reduce fluctuations, providing a more stable prediction experience.</p>
+  
+  <!-- Model Overview Card -->
+  <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
+    <h2 class="text-xl font-semibold text-purple-300 mb-4">Model Overview</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-lg font-medium text-gray-300 mb-2">Characteristics</h3>
+        <ul class="space-y-2 text-gray-400">
+          <li class="flex items-start">
+            <span class="mr-2">•</span>
+            <span>Reduced sensitivity to signal fluctuations</span>
+          </li>
+          <li class="flex items-start">
+            <span class="mr-2">•</span>
+            <span>Temporal filtering for stability</span>
+          </li>
+          <li class="flex items-start">
+            <span class="mr-2">•</span>
+            <span>Ideal for variable signal environments</span>
+          </li>
+          <li class="flex items-start">
+            <span class="mr-2">•</span>
+            <span>Slight latency in responding to rapid changes</span>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-lg font-medium text-gray-300 mb-2">Performance Metrics</h3>
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-gray-400">Accuracy (R²)</span>
+              <span class="text-white">0.84</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2.5">
+              <div class="bg-purple-500 h-2.5 rounded-full" style="width: 84%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-gray-400">MSE</span>
+              <span class="text-white">9.82</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2.5">
+              <div class="bg-purple-500 h-2.5 rounded-full" style="width: 30%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-gray-400">RMSE</span>
+              <span class="text-white">3.13</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2.5">
+              <div class="bg-purple-500 h-2.5 rounded-full" style="width: 31%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Throughput Prediction Chart -->
+  <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
+    <h2 class="text-xl font-semibold text-purple-300 mb-4">Throughput Prediction</h2>
+    <div class="h-80">
+      <canvas id="throughputChart"></canvas>
+    </div>
+  </div>
+  
+  <!-- Feature Importance -->
+  <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
+    <h2 class="text-xl font-semibold text-purple-300 mb-4">Feature Importance</h2>
+    <div class="h-80">
+      <canvas id="featureImportanceChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Throughput Chart
+    const throughputCtx = document.getElementById('throughputChart').getContext('2d');
+    const throughputChart = new Chart(throughputCtx, {
+      type: 'line',
+      data: {
+        labels: Array.from({length: 20}, (_, i) => i + 1),
+        datasets: [
+          {
+            label: 'Predicted Throughput',
+            data: [80, 82, 83, 85, 86, 85, 84, 85, 86, 87, 86, 85, 84, 85, 86, 87, 86, 85, 84, 85],
+            borderColor: 'rgba(139, 92, 246, 1)',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'Actual Throughput',
+            data: [82, 85, 90, 88, 83, 80, 87, 94, 89, 86, 83, 88, 91, 93, 89, 85, 82, 86, 91, 94],
+            borderColor: 'rgba(16, 185, 129, 1)',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderDash: [5, 5],
+            tension: 0.4,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: false,
+            min: 70,
+            max: 100,
+            title: {
+              display: true,
+              text: 'Throughput (Mbps)',
+              color: 'rgba(255, 255, 255, 0.7)'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Time Point',
+              color: 'rgba(255, 255, 255, 0.7)'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          }
+        }
+      }
+    });
+    
+    // Feature Importance Chart
+    const featureCtx = document.getElementById('featureImportanceChart').getContext('2d');
+    const featureChart = new Chart(featureCtx, {
+      type: 'bar',
+      data: {
+        labels: ['RSRP', 'SINR', 'RSRQ', 'Speed', 'Direction', 'Tower Distance', 'Mobility Mode', 'Handover Status'],
+        datasets: [{
+          label: 'Feature Importance',
+          data: [0.30, 0.28, 0.18, 0.06, 0.04, 0.08, 0.04, 0.02],
+          backgroundColor: [
+            'rgba(139, 92, 246, 0.8)',
+            'rgba(139, 92, 246, 0.7)',
+            'rgba(139, 92, 246, 0.6)',
+            'rgba(139, 92, 246, 0.5)',
+            'rgba(139, 92, 246, 0.4)',
+            'rgba(139, 92, 246, 0.3)',
+            'rgba(139, 92, 246, 0.2)',
+            'rgba(139, 92, 246, 0.1)'
+          ],
+          borderColor: [
+            'rgba(139, 92, 246, 1)',
+            'rgba(139, 92, 246, 1)',
+            'rgba(139, 92, 246, 1)',
+            'rgba(139, 92, 246, 1)',
+            'rgba(139, 92, 246, 1)',
+            'rgba(139, 92, 246, 1)',
+            'rgba(139, 92, 246, 1)',
+            'rgba(139, 92, 246, 1)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            beginAtZero: true,
+            max: 0.4,
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          },
+          y: {
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

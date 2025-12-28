@@ -1,0 +1,712 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Green Network Insights - SynergyX{% endblock %}
+
+{% block content %}
+<div class="p-8 space-y-8">
+  <h1 class="text-3xl font-bold text-green-400 mb-2">Green Network Insights</h1>
+  <p class="text-lg text-gray-300 mb-8">Monitor, analyze, and optimize the carbon footprint of your 5G network infrastructure.</p>
+  
+  <!-- Carbon Footprint Calculator Section -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <!-- Throughput-Based Carbon Footprint -->
+    <div class="bg-gray-900 rounded-xl overflow-hidden shadow-lg border-l-4 border-green-500 hover:shadow-green-500/20">
+      <div class="p-6">
+        <h2 class="text-2xl font-bold text-green-400 flex items-center mb-4">
+          <span class="mr-2">📊</span> Throughput-Based Carbon Footprint
+        </h2>
+        
+        <form id="throughput-carbon-form" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Throughput (Mbps)</label>
+              <input type="number" id="throughput" min="0" step="1" value="100" 
+                     class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Duration (seconds)</label>
+              <input type="number" id="duration" min="1" step="1" value="60" 
+                     class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Moving Speed (km/h)</label>
+              <input type="number" id="moving-speed" min="0" step="1" value="30" 
+                     class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Speed Range</label>
+              <select id="speed-range" 
+                      class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <option value="0-20">0-20 km/h</option>
+                <option value="20-50" selected>20-50 km/h</option>
+                <option value="50-80">50-80 km/h</option>
+                <option value="80-120">80-120 km/h</option>
+              </select>
+            </div>
+          </div>
+          
+          <button type="button" onclick="calculateCarbonFootprint()" 
+                  class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition">
+            Calculate Carbon Footprint
+          </button>
+        </form>
+        
+        <div class="mt-6 p-4 bg-gray-800 rounded-lg">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-gray-300">Data Volume:</span>
+            <span id="data-volume-result" class="text-xl font-bold text-green-400">0 GB</span>
+          </div>
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-gray-300">Energy Consumption:</span>
+            <span id="energy-result" class="text-xl font-bold text-green-400">0 Wh</span>
+          </div>
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-gray-300">Carbon Footprint:</span>
+            <span id="carbon-result" class="text-xl font-bold text-green-400">0 kg CO₂e</span>
+          </div>
+          <div class="w-full bg-gray-700 rounded-full h-2.5 mt-2">
+            <div id="carbon-bar" class="bg-green-500 h-2.5 rounded-full" style="width: 0%"></div>
+          </div>
+          <div class="flex justify-between text-xs text-gray-400 mt-1">
+            <span>Low Impact</span>
+            <span>High Impact</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- User Carbon Footprint -->
+    <div class="bg-gray-900 rounded-xl overflow-hidden shadow-lg border-l-4 border-green-500 hover:shadow-green-500/20">
+      <div class="p-6">
+        <h2 class="text-2xl font-bold text-green-400 flex items-center mb-4">
+          <span class="mr-2">📡</span> Base Station Carbon Footprint
+        </h2>
+        
+        <form id="base-station-carbon-form" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Number of Base Stations</label>
+              <input type="number" id="base-station-count" min="1" step="1" value="5" 
+                     class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Average Power Consumption (kW)</label>
+              <input type="number" id="power-consumption" min="0.1" step="0.1" value="1.5" 
+                     class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Daily Active Hours</label>
+              <input type="number" id="active-hours" min="1" max="24" step="1" value="24" 
+                     class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Average Traffic Load (%)</label>
+              <input type="number" id="traffic-load" min="1" max="100" step="1" value="65" 
+                     class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Energy Source</label>
+              <select id="energy-source" 
+                      class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <option value="grid">Grid Electricity</option>
+                <option value="renewable">Partial Renewable (30%)</option>
+                <option value="high-renewable">High Renewable (70%)</option>
+                <option value="full-renewable">100% Renewable</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Network Type</label>
+              <select id="network-type" 
+                      class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <option value="4g">4G LTE</option>
+                <option value="5g" selected>5G</option>
+                <option value="mixed">Mixed 4G/5G</option>
+              </select>
+            </div>
+          </div>
+        </form>
+        
+        <div class="mt-6 p-4 bg-gray-800 rounded-lg">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-gray-300">Daily Energy Consumption:</span>
+            <span id="station-energy-result" class="text-xl font-bold text-green-400">180 kWh</span>
+          </div>
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-gray-300">Daily Carbon Emissions:</span>
+            <span id="station-carbon-result" class="text-xl font-bold text-green-400">42 kg CO₂e</span>
+          </div>
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-gray-300">Annual Carbon Footprint:</span>
+            <span id="annual-carbon-result" class="text-xl font-bold text-green-400">15.3 tonnes CO₂e</span>
+          </div>
+          <div class="w-full bg-gray-700 rounded-full h-2.5 mt-2">
+            <div id="station-carbon-bar" class="bg-green-500 h-2.5 rounded-full" style="width: 65%"></div>
+          </div>
+          <div class="flex justify-between text-xs text-gray-400 mt-1">
+            <span>Low Impact</span>
+            <span>High Impact</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Carbon Footprint by Speed Range -->
+  <div class="bg-gray-900 rounded-xl overflow-hidden shadow-lg border-l-4 border-green-500 hover:shadow-green-500/20 p-6">
+    <h2 class="text-2xl font-bold text-green-400 flex items-center mb-6">
+      <span class="mr-2">🚗</span> Carbon Footprint by Speed Range
+    </h2>
+    
+    <div class="h-80">
+      <canvas id="speedCarbonChart"></canvas>
+    </div>
+    
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-gray-800 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-green-300 mb-3">Speed Impact Analysis</h3>
+        <p class="text-gray-300">
+          Higher speeds typically result in increased carbon footprint due to:
+        </p>
+        <ul class="mt-2 space-y-2 text-gray-300">
+          <li class="flex items-start">
+            <span class="text-green-400 mr-2">•</span>
+            <span>More frequent handovers between cell towers</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-green-400 mr-2">•</span>
+            <span>Higher data rates to maintain quality of service</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-green-400 mr-2">•</span>
+            <span>Increased signal processing requirements</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-green-400 mr-2">•</span>
+            <span>More energy needed to compensate for Doppler effect</span>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="bg-gray-800 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-green-300 mb-3">Optimization Recommendations</h3>
+        <ul class="space-y-2 text-gray-300">
+          <li class="flex items-start">
+            <span class="text-green-400 mr-2">•</span>
+            <span>Optimize data transfer during lower speeds when possible</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-green-400 mr-2">•</span>
+            <span>Implement adaptive bit rate for video streaming based on speed</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-green-400 mr-2">•</span>
+            <span>Use predictive caching when entering high-speed zones</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-green-400 mr-2">•</span>
+            <span>Consider data compression techniques for high-speed scenarios</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Carbon Footprint Breakdown -->
+  <div class="bg-gray-900 rounded-xl overflow-hidden shadow-lg border-l-4 border-green-500 hover:shadow-green-500/20 p-6">
+    <h2 class="text-2xl font-bold text-green-400 flex items-center mb-6">
+      <span class="mr-2">📊</span> Carbon Footprint Breakdown
+    </h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- User Emissions Breakdown -->
+      <div>
+        <h3 class="text-xl font-semibold text-gray-300 mb-4">User Emissions Sources</h3>
+        
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between mb-1">
+              <span class="text-gray-300">Data Transmission</span>
+              <span class="text-green-400">45%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2">
+              <div class="bg-green-500 h-2 rounded-full" style="width: 45%"></div>
+            </div>
+          </div>
+          
+          <div>
+            <div class="flex justify-between mb-1">
+              <span class="text-gray-300">Device Energy Consumption</span>
+              <span class="text-green-400">30%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2">
+              <div class="bg-green-500 h-2 rounded-full" style="width: 30%"></div>
+            </div>
+          </div>
+          
+          <div>
+            <div class="flex justify-between mb-1">
+              <span class="text-gray-300">Network Processing</span>
+              <span class="text-green-400">25%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2">
+              <div class="bg-green-500 h-2 rounded-full" style="width: 25%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Infrastructure Emissions Breakdown -->
+      <div>
+        <h3 class="text-xl font-semibold text-gray-300 mb-4">Infrastructure Emissions Sources</h3>
+        
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between mb-1">
+              <span class="text-gray-300">Base Stations</span>
+              <span class="text-green-400">55%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2">
+              <div class="bg-green-500 h-2 rounded-full" style="width: 55%"></div>
+            </div>
+          </div>
+          
+          <div>
+            <div class="flex justify-between mb-1">
+              <span class="text-gray-300">Data Centers</span>
+              <span class="text-green-400">30%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2">
+              <div class="bg-green-500 h-2 rounded-full" style="width: 30%"></div>
+            </div>
+          </div>
+          
+          <div>
+            <div class="flex justify-between mb-1">
+              <span class="text-gray-300">Network Equipment</span>
+              <span class="text-green-400">15%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2">
+              <div class="bg-green-500 h-2 rounded-full" style="width: 15%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Carbon Trend Chart -->
+    <div class="mt-8">
+      <h3 class="text-xl font-semibold text-gray-300 mb-4">Carbon Footprint Trend</h3>
+      <div class="bg-gray-800 p-4 rounded-lg h-64">
+        <!-- Canvas for Chart.js -->
+        <canvas id="carbon-trend-chart"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <!-- SDG Impact -->
+<div class="bg-gray-900 rounded-xl overflow-hidden shadow-lg border-l-4 border-green-500 hover:shadow-green-500/20 p-6">
+  <h2 class="text-2xl font-bold text-green-400 flex items-center mb-6">
+    <span class="mr-2">🌍</span> SDG Impact
+  </h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    
+    <!-- SDG 9 -->
+    <div class="bg-gray-800 p-4 rounded-lg text-center">
+      <div class="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center mx-auto mb-3">
+        <span class="text-white font-bold text-xl">9</span>
+      </div>
+      <h3 class="text-lg font-semibold text-red-400 mb-2">Industry, Innovation and Infrastructure</h3>
+      <p class="text-gray-300 text-sm">Sustainable 5G networks foster innovation and resilient infrastructure in telecom sectors.</p>
+    </div>
+
+    <!-- SDG 11 -->
+    <div class="bg-gray-800 p-4 rounded-lg text-center">
+      <div class="w-16 h-16 rounded-full bg-amber-600 flex items-center justify-center mx-auto mb-3">
+        <span class="text-white font-bold text-xl">11</span>
+      </div>
+      <h3 class="text-lg font-semibold text-amber-400 mb-2">Sustainable Cities and Communities</h3>
+      <p class="text-gray-300 text-sm">Green 5G networks support smart city initiatives with minimal environmental impact.</p>
+    </div>
+
+    <!-- SDG 12 -->
+    <div class="bg-gray-800 p-4 rounded-lg text-center">
+      <div class="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center mx-auto mb-3">
+        <span class="text-white font-bold text-xl">12</span>
+      </div>
+      <h3 class="text-lg font-semibold text-green-400 mb-2">Responsible Consumption</h3>
+      <p class="text-gray-300 text-sm">Optimizing data usage promotes sustainable consumption patterns in digital infrastructure.</p>
+    </div>
+
+    <!-- SDG 13 -->
+    <div class="bg-gray-800 p-4 rounded-lg text-center">
+      <div class="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center mx-auto mb-3">
+        <span class="text-white font-bold text-xl">13</span>
+      </div>
+      <h3 class="text-lg font-semibold text-blue-400 mb-2">Climate Action</h3>
+      <p class="text-gray-300 text-sm">Carbon footprint tracking enables targeted actions to reduce emissions and combat climate change.</p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- JavaScript for Carbon Footprint Calculator and Charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the carbon footprint calculator
+    initCarbonCalculator();
+    
+    // Initialize the carbon trend chart
+    initCarbonTrendChart();
+    
+    // Initialize the speed carbon chart
+    initSpeedCarbonChart();
+    
+    // Add event listeners to form inputs
+    document.querySelectorAll('#base-station-carbon-form input, #base-station-carbon-form select').forEach(input => {
+      input.addEventListener('change', calculateBaseStationCarbon);
+    });
+    
+    // Calculate initial values
+    calculateBaseStationCarbon();
+  });
+  
+  function initCarbonCalculator() {
+    // Set up event listeners for the throughput calculator
+    document.getElementById('throughput').addEventListener('change', updateSpeedRange);
+    document.getElementById('moving-speed').addEventListener('change', updateSpeedRange);
+  }
+  
+  function updateSpeedRange() {
+    const speed = parseFloat(document.getElementById('moving-speed').value);
+    const speedRangeSelect = document.getElementById('speed-range');
+    
+    // Set the appropriate speed range based on the speed value
+    if (speed <= 20) {
+      speedRangeSelect.value = '0-20';
+    } else if (speed <= 50) {
+      speedRangeSelect.value = '20-50';
+    } else if (speed <= 80) {
+      speedRangeSelect.value = '50-80';
+    } else {
+      speedRangeSelect.value = '80-120';
+    }
+  }
+  
+  function calculateCarbonFootprint() {
+    // Get input values
+    const throughput = parseFloat(document.getElementById('throughput').value); // Mbps
+    const duration = parseFloat(document.getElementById('duration').value); // seconds
+    
+    // Calculate data volume in GB
+    // Formula: (Throughput in Mbit/s × Duration in s) / (8 × 1024)
+    const dataVolumeGB = (throughput * duration) / (8 * 1024);
+    
+    // Calculate energy consumption in Wh
+    // Formula: data_volume_gb × 5
+    const energyWh = dataVolumeGB * 5;
+    
+    // Calculate carbon footprint in kg CO₂e
+    // Formula: (energy_wh / 1000) × 0.233
+    const carbonFootprint = (energyWh / 1000) * 0.233;
+    
+    // Update the UI
+    document.getElementById('data-volume-result').textContent = dataVolumeGB.toFixed(4) + ' GB';
+    document.getElementById('energy-result').textContent = energyWh.toFixed(2) + ' Wh';
+    document.getElementById('carbon-result').textContent = carbonFootprint.toFixed(6) + ' kg CO₂e';
+    
+    // Update the progress bar (max at 0.01 kg CO₂e)
+    const percentage = Math.min(carbonFootprint / 0.01 * 100, 100);
+    document.getElementById('carbon-bar').style.width = percentage + '%';
+    
+    // Update the speed carbon chart
+    updateSpeedCarbonChart(carbonFootprint);
+    
+    return carbonFootprint;
+  }
+  
+  function calculateBaseStationCarbon() {
+    // Get form values
+    const baseStationCount = parseInt(document.getElementById('base-station-count').value);
+    const powerConsumption = parseFloat(document.getElementById('power-consumption').value);
+    const activeHours = parseInt(document.getElementById('active-hours').value);
+    const trafficLoad = parseInt(document.getElementById('traffic-load').value) / 100;
+    const energySource = document.getElementById('energy-source').value;
+    const networkType = document.getElementById('network-type').value;
+    
+    // Energy source emission factors (kg CO2e per kWh)
+    const emissionFactors = {
+      'grid': 0.233, // Average grid emission factor
+      'renewable': 0.163, // 30% renewable mix
+      'high-renewable': 0.070, // 70% renewable mix
+      'full-renewable': 0.010 // 100% renewable (small factor for manufacturing)
+    };
+    
+    // Network type efficiency factors
+    const networkFactors = {
+      '4g': 1.2, // 4G is less efficient
+      '5g': 1.0, // 5G baseline
+      'mixed': 1.1 // Mixed network
+    };
+    
+    // Calculate daily energy consumption (kWh)
+    // Formula: Number of stations × Power consumption × Active hours × Traffic load × Network factor
+    const dailyEnergy = baseStationCount * powerConsumption * activeHours * (0.4 + (0.6 * trafficLoad)) * networkFactors[networkType];
+    
+    // Calculate daily carbon emissions (kg CO2e)
+    // Formula: Daily energy × Emission factor
+    const dailyCarbon = dailyEnergy * emissionFactors[energySource];
+    
+    // Calculate annual carbon footprint (tonnes CO2e)
+    const annualCarbon = dailyCarbon * 365 / 1000;
+    
+    // Update the UI
+    document.getElementById('station-energy-result').textContent = dailyEnergy.toFixed(1) + ' kWh';
+    document.getElementById('station-carbon-result').textContent = dailyCarbon.toFixed(1) + ' kg CO₂e';
+    document.getElementById('annual-carbon-result').textContent = annualCarbon.toFixed(1) + ' tonnes CO₂e';
+    
+    // Update the progress bar (max at 100 kg CO2e per day)
+    const percentage = Math.min(dailyCarbon / 100 * 100, 100);
+    document.getElementById('station-carbon-bar').style.width = percentage + '%';
+    
+    // Generate recommendations based on calculations
+    generateRecommendations(dailyCarbon, annualCarbon);
+    
+    return {
+      dailyEnergy: dailyEnergy,
+      dailyCarbon: dailyCarbon,
+      annualCarbon: annualCarbon
+    };
+  }
+
+// Add a function to generate recommendations based on all calculations
+function generateRecommendations(stationCarbon, annualCarbon) {
+  const throughputCarbon = parseFloat(document.getElementById('carbon-result').textContent);
+  const recommendationsContainer = document.querySelector('.bg-gray-800.p-4.rounded-lg:nth-of-type(2)');
+  
+  // Clear existing recommendations
+  if (recommendationsContainer) {
+    const recommendationsList = recommendationsContainer.querySelector('ul');
+    if (recommendationsList) {
+      recommendationsList.innerHTML = '';
+      
+      // Add new recommendations based on calculations
+      const recommendations = [];
+      
+      // Base station recommendations
+      if (stationCarbon > 50) {
+        recommendations.push('Consider transitioning to renewable energy sources for base stations to reduce emissions by up to 70%.');
+      }
+      
+      if (document.getElementById('energy-source').value === 'grid') {
+        recommendations.push('Implementing partial renewable energy (solar/wind) can reduce base station carbon footprint by 30-40%.');
+      }
+      
+      if (document.getElementById('traffic-load').value > 80) {
+        recommendations.push('Optimize traffic load distribution across base stations to reduce peak power consumption.');
+      }
+      
+      // Throughput recommendations
+      if (throughputCarbon > 0.0005) {
+        recommendations.push('Implement adaptive bit rate streaming to reduce data consumption during high-speed movement.');
+      }
+      
+      if (document.getElementById('moving-speed').value > 50) {
+        recommendations.push('For high-speed scenarios, use predictive caching to reduce real-time data transmission needs.');
+      }
+      
+      // General recommendations
+      recommendations.push('Regular maintenance and upgrades of base station equipment can improve energy efficiency by 15-20%.');
+      recommendations.push('Implementing sleep modes during low-traffic periods can reduce base station energy consumption by up to 30%.');
+      
+      // Add recommendations to the list
+      recommendations.forEach(rec => {
+        const li = document.createElement('li');
+        li.className = 'flex items-start';
+        li.innerHTML = `
+          <span class="text-green-400 mr-2">•</span>
+          <span>${rec}</span>
+        `;
+        recommendationsList.appendChild(li);
+      });
+    }
+  }
+}
+  
+  function initCarbonTrendChart() {
+    const ctx = document.getElementById('carbon-trend-chart').getContext('2d');
+    
+    // Sample data for the last 12 months
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const userEmissions = [2.8, 2.7, 2.9, 3.1, 3.0, 2.8, 2.7, 2.5, 2.3, 2.2, 2.0, 1.9];
+    const infraEmissions = [4.5, 4.3, 4.4, 4.2, 4.0, 3.8, 3.5, 3.3, 3.1, 2.9, 2.7, 2.5];
+    
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [
+          {
+            label: 'User Emissions (tonnes CO₂e)',
+            data: userEmissions,
+            borderColor: 'rgba(72, 187, 120, 1)',
+            backgroundColor: 'rgba(72, 187, 120, 0.1)',
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'Infrastructure Emissions (tonnes CO₂e)',
+            data: infraEmissions,
+            borderColor: 'rgba(56, 178, 172, 1)',
+            backgroundColor: 'rgba(56, 178, 172, 0.1)',
+            tension: 0.4,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          },
+          x: {
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false
+          }
+        }
+      }
+    });
+  }
+  
+  function initSpeedCarbonChart() {
+    const ctx = document.getElementById('speedCarbonChart').getContext('2d');
+    
+    // Sample data for different speed ranges
+    const speedRanges = ['0-20 km/h', '20-50 km/h', '50-80 km/h', '80-120 km/h'];
+    const carbonValues = [0.00015, 0.00025, 0.00040, 0.00060]; // kg CO₂e
+    
+    window.speedCarbonChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: speedRanges,
+        datasets: [{
+          label: 'Carbon Footprint (kg CO₂e)',
+          data: carbonValues,
+          backgroundColor: [
+            'rgba(72, 187, 120, 0.7)',
+            'rgba(56, 178, 172, 0.7)',
+            'rgba(246, 173, 85, 0.7)',
+            'rgba(237, 100, 166, 0.7)'
+          ],
+          borderColor: [
+            'rgba(72, 187, 120, 1)',
+            'rgba(56, 178, 172, 1)',
+            'rgba(246, 173, 85, 1)',
+            'rgba(237, 100, 166, 1)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Carbon Footprint (kg CO₂e)',
+              color: 'rgba(255, 255, 255, 0.7)'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Speed Range',
+              color: 'rgba(255, 255, 255, 0.7)'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.7)'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `Carbon Footprint: ${context.raw} kg CO₂e`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  function updateSpeedCarbonChart(carbonFootprint) {
+    // Get the selected speed range
+    const speedRange = document.getElementById('speed-range').value;
+    
+    // Find the index of the selected speed range
+    const speedRanges = ['0-20', '20-50', '50-80', '80-120'];
+    const index = speedRanges.indexOf(speedRange);
+    
+    if (index !== -1 && window.speedCarbonChart) {
+      // Create a copy of the current data
+      const newData = [...window.speedCarbonChart.data.datasets[0].data];
+      
+      // Update the value for the selected speed range
+      newData[index] = carbonFootprint;
+      
+      // Update the chart
+      window.speedCarbonChart.data.datasets[0].data = newData;
+      window.speedCarbonChart.update();
+    }
+  }
+</script>
+{% endblock %}
