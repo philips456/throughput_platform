@@ -33,3 +33,7 @@ staticfiles/
 # OS
 .DS_Store
 Thumbs.db
+
+# Large media
+*.mp4
+simulator/static/simulator/video/
