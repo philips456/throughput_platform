@@ -13,11 +13,11 @@ This initiative aligns with **SDG 9 (Industry, Innovation & Infrastructure)**, h
 - **Real-time visualization dashboard** for throughput comparison, mobility simulation, and coverage insights.
 
 ## Project Architecture
-![1747728150175](https://github.com/user-attachments/assets/c325bfc2-fc4e-45e8-b8a7-a4b4b113f0fd)
+
 
 
 ## Dashboard Preview
-![1747728150219](https://github.com/user-attachments/assets/ca966b71-5fb4-4f40-9e6c-f014f5450c2f)
+
 
 
 ## Tech Stack
