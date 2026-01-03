@@ -1,6 +1,7 @@
 # Configuration
 PROJECT_NAME=throughput_platform
-DOCKER_USER=philippe545  # change this to your Docker username
+DOCKER_USER=philippe545
+  # change this to your Docker username
 PORT=8000
 MLFLOW_PORT=5000
 VERSION = latest  # Static version for the image (you can change this manually for each release)
