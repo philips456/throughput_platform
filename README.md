@@ -240,4 +240,27 @@ SynergyX contributes to **sustainable network design** by:
 SynergyX demonstrates how **AI, hybrid deep learning, and MLOps** can be combined to address the challenges of 5G mmWave networks.
 By jointly modeling raw and smoothed throughput and embedding the solution in a robust pipeline, the project delivers a **scalable, adaptive, and sustainable intelligence layer for next-generation mobile networks**.
 ```
+## 🏆 Awards & Media
+
+### 🥇 First Prize Winner – Bal des Projets
+
+The **SynergyX – mmWave Intelligence** project was awarded the **🥇 First Prize** at the *Bal des Projets*, recognizing its innovation, technical excellence, and impact in the field of **AI-driven 5G mmWave network intelligence**.
+
+This distinction highlights the relevance of our approach in addressing real-world challenges related to **throughput prediction, mobility adaptation, and energy-efficient network optimization**.
+
+---
+
+### 🎥 Project Presentation (YouTube)
+
+Watch the official presentation of **SynergyX**:
+
+👉 https://youtu.be/SUA1eYoUz34
+
+---
+
+### 🔗 LinkedIn Announcement
+
+Official LinkedIn post announcing the award and project:
+
+👉 https://www.linkedin.com/posts/philippeandre-nomo-36b953350_proud-moment-first-prize-bal-des-projets-activity-7408100467978682368-10t0
 
