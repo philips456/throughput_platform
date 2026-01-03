@@ -204,17 +204,16 @@ The repository currently provides the following images:
 
 Each image is built and pushed automatically as part of the **CI/CD pipeline**.
 
----
+
 
 ### Pulling the Images
 
-```bash
+
 docker pull philippe545/5g_throughput_prediction:frontend-latest
 docker pull philippe545/5g_throughput_prediction:backend-latest
 docker pull philippe545/5g_throughput_prediction:mlflow-latest
 
 
----
 
 ###  Technologies used
 
