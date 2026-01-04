@@ -22,7 +22,7 @@ class PipelineHandler(FileSystemEventHandler):
         if any(ignored in filepath for ignored in IGNORED_DIRS):
             return
 
-        print(f"\n📁 Changement détecté : {filepath}")
+        print("\n📁 Changement détecté : {filepath}")
         self.run_pipeline()
 
     def run_pipeline(self):
@@ -33,14 +33,14 @@ class PipelineHandler(FileSystemEventHandler):
 
             # === Docker Build ===
             print("🐳 Étape 2 : Build Docker images")
-            print(f"\n📁 images already exist !")
+            print("\n📁 images already exist !")
 
             # === Docker Tag + Push ===
             print("🏷️ Étape 3 : Tag images")
-            print(f"\n📁 images already tagged !")
+            print("\n📁 images already tagged !")
 
             print("📤 Étape 4 : Push images")
-            print(f"\n📁 images already pushed !")
+            print("\n📁 images already pushed !")
 
             # === CD ===
             print("🚀 Étape 5 : CD → pull + run + check")
@@ -54,8 +54,8 @@ class PipelineHandler(FileSystemEventHandler):
 
 def start_watchdog():
     print("👁️  Watchdog CI/CD en cours...")
-    print(f"📂 Surveillance du dossier : {os.path.abspath(WATCH_PATH)}")
-    print(f"🎯 Extensions surveillées : {', '.join(TRIGGER_EXTS)}")
+    print("📂 Surveillance du dossier : {os.path.abspath(WATCH_PATH)}")
+    print("🎯 Extensions surveillées : {', '.join(TRIGGER_EXTS)}")
     observer = Observer()
     handler = PipelineHandler()
     observer.schedule(handler, path=WATCH_PATH, recursive=True)
