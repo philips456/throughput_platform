@@ -315,5 +315,8 @@ Official LinkedIn post announcing the award and project:
 
 ## 📽️ Project Presentation
 
-👉 **[📄 Open Presentation (PDF)](docs/Presentation_synergix.pdf)**
+👉 **Synergix – 5G Throughput Prediction Platform**
+
+📄 [Download the presentation (PDF)](docs/Presentation_synergix.pdf)
+
 
