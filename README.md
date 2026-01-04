@@ -157,7 +157,49 @@ This design allows the model to:
 - Adapt to heterogeneous network contexts
 
 ---
+SynergyX Frontend 🚀
 
+5G Throughput Prediction Platform — Web UI
+
+SynergyX Frontend is the web interface of the 5G Throughput Prediction Platform, built to simulate user mobility, predict 5G throughput, visualize model performance, and monitor experiments via MLflow.
+<p align="center">
+  <img src="images/dashboard.jpg" alt="dashboard" width="800"/>
+</p>
+✨ Features
+
+🔐 Authentication UI (Login / Create account)
+<p align="center">
+  <img src="images/login.jpg" alt="login" width="800"/>
+</p>
+🗺️ Coverage Map & Mobility Simulation
+<p align="center">
+  <img src="images/simulator.jpg" alt="simulator" width="800"/>
+</p>
+Configure speed, direction, mobility mode (Walking, etc.)
+
+Start simulation and track current GPS position + distance traveled
+<p align="center">
+  <img src="images/simulator.jpg" alt="simulator" width="800"/>
+</p>
+📈 Throughput Prediction (Predictor)
+
+Input radio/network parameters (RSRP, RSRQ, SINR, speed, direction, coordinates)
+
+One-click prediction with preset scenarios (Urban Center, Highway, Indoor Mall…)
+<p align="center">
+  <img src="images/predictor.jpg" alt="predictor" width="800"/>
+</p>
+📊 Model Metrics & Visuals
+
+Compare models: Raw, Smoothed, Hybrid
+
+Display key metrics: R², MAE, RMSE
+
+Quick access button: Open MLflow UI 
+<p align="center">
+  <img src="images/mlops_dashboard.jpg" alt="mlops_dashboard" width="800"/>
+</p>
+🧠 Designed for telecom experimentation (5G throughput forecasting & evaluation)
 ## ⚙️ MLOps Pipeline
 
 A complete **CI/CD-oriented MLOps pipeline** was implemented to ensure reproducibility and deployment readiness.
