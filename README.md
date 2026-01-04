@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/synergyx_logo.jpg" alt="SynergyX Logo" width="220"/>
+  <img src="images/Synergixlogo.jpg" alt="SynergyX Logo" width="220"/>
 </p>
 
 **AI-Driven 5G mmWave Throughput Prediction & MLOps Pipeline**
@@ -121,7 +121,7 @@ Several preprocessing steps were applied to ensure robust modeling:
 These complementary behaviors motivated a hybrid strategy.
 
 <p align="center">
-  <img src="images/troughput.jpg" alt="troughput" width="800"/>
+  <img src="images/throughput.jpg" alt="troughput" width="800"/>
 </p>
 
 ---
