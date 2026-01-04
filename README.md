@@ -313,3 +313,7 @@ Official LinkedIn post announcing the award and project:
 
 👉 https://www.linkedin.com/posts/philippeandre-nomo-36b953350_proud-moment-first-prize-bal-des-projets-activity-7408100467978682368-10t0
 
+## 📽️ Project Presentation
+
+👉 **[📄 Open Presentation (PDF)](docs/Presentation_synergix.pdf)**
+
