@@ -313,10 +313,9 @@ Official LinkedIn post announcing the award and project:
 
 👉 https://www.linkedin.com/posts/philippeandre-nomo-36b953350_proud-moment-first-prize-bal-des-projets-activity-7408100467978682368-10t0
 
-## 📽️ Project Presentation
 
-👉 **Synergix – 5G Throughput Prediction Platform**
 
-📄 [Download the presentation (PDF)](docs/Presentation_synergix.pdf)
+🎯 **Synergix – 5G Throughput Prediction Platform**
 
+📄 [Download the presentation (PDF)](https://github.com/philips456/throughput_platform/raw/main/docs/Presentation_synergix.pdf)
 
