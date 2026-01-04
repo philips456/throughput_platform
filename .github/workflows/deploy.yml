@@ -46,6 +46,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Dockerfile.mlflow
+          file: Dockerfile.model
           push: true
           tags: philippe545/5g_throughput_prediction:mlflow-latest
