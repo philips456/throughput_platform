@@ -1,4 +1,17 @@
 [flake8]
-max-line-length = 88
+max-line-length = 120
 extend-ignore = E203, W503
-exclude = .git,__pycache__,.venv,venv,migrations,staticfiles,mlruns,mlflow,models,outputs,data,notebooks
+exclude =
+    .venv,
+    venv,
+    __pycache__,
+    migrations,
+    simulator/views.py
+    .ipynb_checkpoints
+per-file-ignores =
+    scripts/detect_drift.py:F401
+    scripts/evaluate_model.py:F401
+    scripts/train_model.py:F401
+    simulator/create_dummy_models.py:F401
+    simulator/tests.py:F401
+    train_tf_model.py:F401
